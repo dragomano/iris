@@ -1,0 +1,54 @@
+{
+  "name": "bugo/iris",
+  "description": "Color spaces, any-to-any conversions and serialization for legacy and modern CSS colors",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Bugo",
+      "email": "bugo@dragomano.ru"
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "ext-ctype": "*"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.94",
+    "pestphp/pest": "^3.8|^4.4",
+    "phpstan/phpstan": "^2.1",
+    "rector/rector": "^2.3",
+    "vimeo/psalm": "^6.15"
+  },
+  "autoload": {
+    "psr-4": {
+      "Bugo\\Iris\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "fix": "vendor/bin/php-cs-fixer fix",
+    "rector": "vendor/bin/rector process --clear-cache",
+    "check": "vendor/bin/rector process --dry-run --clear-cache",
+    "phpstan": "vendor/bin/phpstan analyse -l 10 src --memory-limit=512M --debug --no-progress",
+    "psalm": "vendor/bin/psalm --stats --no-cache",
+    "comparisons": "php comparisons.php",
+    "test": "vendor/bin/pest --colors=always --display-warnings",
+    "test-coverage": "vendor/bin/pest -d memory_limit=512M --colors=always --coverage --min=100",
+    "test-coverage-clover": "vendor/bin/pest --colors=always --min=100 --coverage-clover coverage.xml",
+    "test-coverage-html": "vendor/bin/pest --colors=always --min=100 --coverage-html coverage",
+    "test-mutate": "vendor/bin/pest --colors=always --mutate --covered-only -d memory_limit=1G --path=src"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}
