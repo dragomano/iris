@@ -1,0 +1,11 @@
+* text eol=lf
+
+/.gitattributes         export-ignore
+/.github                export-ignore
+/.gitignore             export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/comparisons.php        export-ignore
+/phpunit.xml            export-ignore
+/psalm.xml              export-ignore
+/rector.php             export-ignore
+/tests                  export-ignore
