@@ -9,18 +9,21 @@ use Bugo\Iris\NamedColors;
 use Bugo\Iris\Spaces\RgbColor;
 
 use function abs;
+use function floor;
 use function round;
 use function sprintf;
 
 final readonly class LiteralSerializer
 {
+    private const HALF_STEP_EPSILON = 1e-12;
+
     public function __construct(private SpaceConverter $colorSpaceConverter = new SpaceConverter()) {}
 
     public function serialize(RgbColor $rgb): string
     {
-        $red   = (int) round($this->colorSpaceConverter->clamp($rgb->r ?? 0.0, 255.0));
-        $green = (int) round($this->colorSpaceConverter->clamp($rgb->g ?? 0.0, 255.0));
-        $blue  = (int) round($this->colorSpaceConverter->clamp($rgb->b ?? 0.0, 255.0));
+        $red   = $this->toColorByte($rgb->r ?? 0.0);
+        $green = $this->toColorByte($rgb->g ?? 0.0);
+        $blue  = $this->toColorByte($rgb->b ?? 0.0);
         $alpha = $this->colorSpaceConverter->clamp($rgb->a, 1.0);
 
         if (abs($alpha - 1.0) < 0.00001) {
@@ -33,7 +36,7 @@ final readonly class LiteralSerializer
             return sprintf('#%02x%02x%02x', $red, $green, $blue);
         }
 
-        $alphaByte = (int) round($alpha * 255.0);
+        $alphaByte = $this->toColorByte($alpha * 255.0);
 
         return sprintf('#%02x%02x%02x%02x', $red, $green, $blue, $alphaByte);
     }
@@ -55,5 +58,17 @@ final readonly class LiteralSerializer
         }
 
         return null;
+    }
+
+    private function toColorByte(float $value): int
+    {
+        $value    = $this->colorSpaceConverter->clamp($value, 255.0);
+        $fraction = $value - floor($value);
+
+        if ($fraction < 0.5 && abs($fraction - 0.5) < self::HALF_STEP_EPSILON) {
+            return (int) floor($value);
+        }
+
+        return (int) round($value);
     }
 }
