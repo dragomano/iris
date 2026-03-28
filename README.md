@@ -1,12 +1,11 @@
 # Iris
 
+![PHP](https://img.shields.io/badge/PHP-^8.2-blue.svg?style=flat)
+[![Coverage Status](https://coveralls.io/repos/github/dragomano/iris/badge.svg?branch=main)](https://coveralls.io/github/dragomano/iris?branch=main)
+
 **Color space conversions, serialization, and operations for legacy and modern CSS colors.**
 
 Named after Iris, the goddess of the rainbow in Greek mythology.
-
-## Requirements
-
-- PHP 8.2+
 
 ## Installation
 
