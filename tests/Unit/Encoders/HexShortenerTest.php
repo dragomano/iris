@@ -76,4 +76,4 @@ describe('HexShortener', function (): void {
             expect($this->shortener->shorten('#abcd'))->toBe('#abcd');
         });
     });
-});
+})->covers(HexShortener::class);

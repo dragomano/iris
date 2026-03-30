@@ -57,12 +57,13 @@ describe('GamutMapper', function (): void {
         });
 
         it('out-of-gamut color is mapped with reduced chroma', function (): void {
-            $oklch      = new OklchColor(l: 70.0, c: 40.0, h: 30.0, a: 1.0);
-            $result     = $this->mapper->localMinde($oklch);
+            $oklch        = new OklchColor(l: 70.0, c: 40.0, h: 30.0, a: 1.0);
+            $result       = $this->mapper->localMinde($oklch);
             $resultChroma = $result->c ?? 0.0;
 
-            // local-MINDE should produce lower or equal chroma than the original
-            expect($resultChroma)->toBeLessThanOrEqual(40.0 + 0.001);
+            // local-MINDE should produce significantly reduced chroma vs clip
+            // localMinde ≈ 0.2062, clip ≈ 0.2577 — binary search gives lower chroma
+            expect($resultChroma)->toBeCloseTo(0.206, 2);
         });
 
         it('preserves alpha channel', function (): void {
@@ -80,9 +81,9 @@ describe('GamutMapper', function (): void {
         });
 
         it('local-minde result has less or equal chroma than clip for vivid colors', function (): void {
-            $oklch     = new OklchColor(l: 65.0, c: 35.0, h: 25.0, a: 1.0);
-            $clipped   = $this->mapper->clip($oklch);
-            $mapped    = $this->mapper->localMinde($oklch);
+            $oklch   = new OklchColor(l: 65.0, c: 35.0, h: 25.0, a: 1.0);
+            $clipped = $this->mapper->clip($oklch);
+            $mapped  = $this->mapper->localMinde($oklch);
 
             // Both should produce valid OklchColor
             expect($clipped)->toBeInstanceOf(OklchColor::class)

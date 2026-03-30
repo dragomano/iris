@@ -43,6 +43,10 @@ describe('HexEncoder', function (): void {
         it('encodes rgb(16,32,48) correctly with zero-padded bytes', function (): void {
             expect($this->encoder->encodeRgb(16, 32, 48))->toBe('#102030');
         });
+
+        it('encodes rgb(1,2,3) with zero-padded bytes in every position', function (): void {
+            expect($this->encoder->encodeRgb(1, 2, 3))->toBe('#010203');
+        });
     });
 
     describe('encodeRgba', function (): void {
@@ -86,10 +90,14 @@ describe('HexEncoder', function (): void {
             expect($this->encoder->toHexByte(128))->toBe('80');
         });
 
+        it('encodes 15 as 0f', function (): void {
+            expect($this->encoder->toHexByte(15))->toBe('0f');
+        });
+
         it('result is always 2 characters long', function (): void {
             expect(strlen($this->encoder->toHexByte(0)))->toBe(2)
                 ->and(strlen($this->encoder->toHexByte(15)))->toBe(2)
                 ->and(strlen($this->encoder->toHexByte(255)))->toBe(2);
         });
     });
-});
+})->covers(HexEncoder::class);

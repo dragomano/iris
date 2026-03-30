@@ -1059,4 +1059,105 @@ describe('SpaceConverter', function (): void {
             expect($rgb->a)->toBe(0.5);
         });
     });
+
+    describe('labToSrgb', function (): void {
+        it('converts lab(50, 20, -30) to sRGB channels', function (): void {
+            [$r, $g, $b] = $this->converter->labToSrgb(50.0, 20.0, -30.0);
+
+            expect($r)->toBeCloseTo(0.52115, 4)
+                ->and($g)->toBeCloseTo(0.42366, 4)
+                ->and($b)->toBeCloseTo(0.66851, 4);
+        });
+    });
+
+    describe('srgbChannelsToSrgba', function (): void {
+        it('clamps out-of-range channels and preserves alpha', function (): void {
+            $rgb = $this->converter->srgbChannelsToSrgba(0.3, 1.5, -0.2, 0.8);
+
+            expect($rgb->r)->toBeCloseTo(0.3, 5)
+                ->and($rgb->g)->toBe(1.0)
+                ->and($rgb->b)->toBe(0.0)
+                ->and($rgb->a)->toBeCloseTo(0.8, 5);
+        });
+
+        it('preserves in-range values without clamping', function (): void {
+            $rgb = $this->converter->srgbChannelsToSrgba(0.3, 0.7, 0.5, 0.6);
+
+            expect($rgb->r)->toBeCloseTo(0.3, 5)
+                ->and($rgb->g)->toBeCloseTo(0.7, 5)
+                ->and($rgb->b)->toBeCloseTo(0.5, 5);
+        });
+
+        it('clamps all channels above 1.0', function (): void {
+            $rgb = $this->converter->srgbChannelsToSrgba(1.5, 1.5, 1.5, 1.0);
+
+            expect($rgb->r)->toBe(1.0)
+                ->and($rgb->g)->toBe(1.0)
+                ->and($rgb->b)->toBe(1.0);
+        });
+    });
+
+    describe('labF precise constants', function (): void {
+        it('uses correct epsilon/kappa branch selection with exact precision', function (): void {
+            expect($this->converter->labF(0.1))->toBeCloseTo(0.464159, 4);
+        });
+
+        it('uses correct kappa for linear approximation', function (): void {
+            $epsilon = 216.0 / 24389.0;
+
+            expect($this->converter->labF($epsilon / 2))->toBeCloseTo(0.172414, 4);
+        });
+    });
+
+    describe('labToXyzD50 precise', function (): void {
+        it('converts lab(50, 20, -30) to xyz-d50 with precise constants', function (): void {
+            $xyz = $this->converter->labToXyzD50(50.0, 20.0, -30.0);
+
+            expect($xyz->x)->toBeCloseTo(0.217765, 4)
+                ->and($xyz->y)->toBeCloseTo(0.184187, 4)
+                ->and($xyz->z)->toBeCloseTo(0.306643, 4);
+        });
+    });
+
+    describe('lchChannelsToSrgba', function (): void {
+        it('converts lch(50, 30, 150) to sRGB', function (): void {
+            $rgb = $this->converter->lchChannelsToSrgba(50.0, 30.0, 150.0, 1.0);
+
+            expect($rgb->r)->toBeCloseTo(0.29534, 4)
+                ->and($rgb->g)->toBeCloseTo(0.51255, 4)
+                ->and($rgb->b)->toBeCloseTo(0.36104, 4)
+                ->and($rgb->a)->toBe(1.0);
+        });
+    });
+
+    describe('xyzToLabD50 precise', function (): void {
+        it('converts xyz(0.5, 0.5, 0.5) to lab with precise constants', function (): void {
+            [$l, $a, $b] = $this->converter->xyzToLabD50(new XyzColor(0.5, 0.5, 0.5));
+
+            expect($l)->toBeCloseTo(76.069, 2)
+                ->and($a)->toBeCloseTo(4.839, 2)
+                ->and($b)->toBeCloseTo(-10.505, 2);
+        });
+    });
+
+    describe('oklabChannelsToSrgba', function (): void {
+        it('converts oklab(0.6, 0.1, -0.05) to sRGB', function (): void {
+            $rgb = $this->converter->oklabChannelsToSrgba(0.6, 0.1, -0.05, 0.9);
+
+            expect($rgb->r)->toBeCloseTo(0.65792, 4)
+                ->and($rgb->g)->toBeCloseTo(0.39817, 4)
+                ->and($rgb->b)->toBeCloseTo(0.61287, 4)
+                ->and($rgb->a)->toBeCloseTo(0.9, 5);
+        });
+    });
+
+    describe('oklchChannelsToSrgba', function (): void {
+        it('converts oklch(0.6, 0.15, 120) to sRGB', function (): void {
+            $rgb = $this->converter->oklchChannelsToSrgba(0.6, 0.15, 120.0, 1.0);
+
+            expect($rgb->r)->toBeCloseTo(0.46084, 4)
+                ->and($rgb->g)->toBeCloseTo(0.54888, 4)
+                ->and($rgb->b)->toBe(0.0);
+        });
+    });
 });

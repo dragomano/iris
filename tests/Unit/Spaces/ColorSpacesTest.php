@@ -44,6 +44,28 @@ describe('Color space data classes', function (): void {
                 ->and($rgb->gValue())->toBe(0.0)
                 ->and($rgb->bValue())->toBe(0.0);
         });
+
+        it('getChannels returns all three channel values in order r, g, b', function (): void {
+            $rgb = new RgbColor(r: 255.0, g: 128.0, b: 64.0);
+
+            expect($rgb->getChannels())->toBe([255.0, 128.0, 64.0]);
+        });
+
+        it('getChannels returns nulls for none channels', function (): void {
+            $rgb = new RgbColor(r: null, g: null, b: null);
+
+            expect($rgb->getChannels())->toBe([null, null, null]);
+        });
+
+        it('getSpace returns rgb', function (): void {
+            expect((new RgbColor())->getSpace())->toBe('rgb');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $rgb = new RgbColor(r: 0.0, g: 0.0, b: 0.0, a: 0.75);
+
+            expect($rgb->getAlpha())->toBe(0.75);
+        });
     });
 
     describe('HslColor', function (): void {
@@ -91,6 +113,22 @@ describe('Color space data classes', function (): void {
                 ->and($hsl->sValue())->toBe(0.0)
                 ->and($hsl->lValue())->toBe(0.0);
         });
+
+        it('getChannels returns all three channel values in order h, s, l', function (): void {
+            $hsl = new HslColor(h: 120.0, s: 1.0, l: 0.5);
+
+            expect($hsl->getChannels())->toBe([120.0, 1.0, 0.5]);
+        });
+
+        it('getSpace returns hsl', function (): void {
+            expect((new HslColor(h: 0.0, s: 0.0, l: 0.0))->getSpace())->toBe('hsl');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $hsl = new HslColor(h: 0.0, s: 0.0, l: 0.0, a: 0.5);
+
+            expect($hsl->getAlpha())->toBe(0.5);
+        });
     });
 
     describe('HwbColor', function (): void {
@@ -123,6 +161,22 @@ describe('Color space data classes', function (): void {
             expect($hwb->hValue())->toBe(0.0)
                 ->and($hwb->wValue())->toBe(0.0)
                 ->and($hwb->bValue())->toBe(0.0);
+        });
+
+        it('getChannels returns all three channel values in order h, w, b', function (): void {
+            $hwb = new HwbColor(h: 240.0, w: 30.0, b: 10.0);
+
+            expect($hwb->getChannels())->toBe([240.0, 30.0, 10.0]);
+        });
+
+        it('getSpace returns hwb', function (): void {
+            expect((new HwbColor(h: 0.0, w: 0.0, b: 0.0))->getSpace())->toBe('hwb');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $hwb = new HwbColor(h: 0.0, w: 0.0, b: 0.0, a: 0.5);
+
+            expect($hwb->getAlpha())->toBe(0.5);
         });
     });
 
@@ -157,6 +211,22 @@ describe('Color space data classes', function (): void {
                 ->and($lab->aValue())->toBe(0.0)
                 ->and($lab->bValue())->toBe(0.0);
         });
+
+        it('getChannels returns all three channel values in order l, a, b', function (): void {
+            $lab = new LabColor(l: 50.0, a: 25.0, b: -30.0);
+
+            expect($lab->getChannels())->toBe([50.0, 25.0, -30.0]);
+        });
+
+        it('getSpace returns lab', function (): void {
+            expect((new LabColor(l: 0.0, a: 0.0, b: 0.0))->getSpace())->toBe('lab');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $lab = new LabColor(l: 0.0, a: 0.0, b: 0.0, alpha: 0.5);
+
+            expect($lab->getAlpha())->toBe(0.5);
+        });
     });
 
     describe('LchColor', function (): void {
@@ -182,6 +252,22 @@ describe('Color space data classes', function (): void {
             expect($lch->lValue())->toBe(0.0)
                 ->and($lch->cValue())->toBe(0.0)
                 ->and($lch->hValue())->toBe(0.0);
+        });
+
+        it('getChannels returns all three channel values in order l, c, h', function (): void {
+            $lch = new LchColor(l: 70.0, c: 40.0, h: 200.0);
+
+            expect($lch->getChannels())->toBe([70.0, 40.0, 200.0]);
+        });
+
+        it('getSpace returns lch', function (): void {
+            expect((new LchColor(l: 0.0, c: 0.0, h: 0.0))->getSpace())->toBe('lch');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $lch = new LchColor(l: 0.0, c: 0.0, h: 0.0, alpha: 0.5);
+
+            expect($lch->getAlpha())->toBe(0.5);
         });
     });
 
@@ -216,6 +302,22 @@ describe('Color space data classes', function (): void {
                 ->and($oklab->aValue())->toBe(0.0)
                 ->and($oklab->bValue())->toBe(0.0);
         });
+
+        it('getChannels returns all three channel values in order l, a, b', function (): void {
+            $oklab = new OklabColor(l: 0.6, a: 0.1, b: -0.05);
+
+            expect($oklab->getChannels())->toBe([0.6, 0.1, -0.05]);
+        });
+
+        it('getSpace returns oklab', function (): void {
+            expect((new OklabColor(l: 0.0, a: 0.0, b: 0.0))->getSpace())->toBe('oklab');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $oklab = new OklabColor(l: 0.0, a: 0.0, b: 0.0, alpha: 0.5);
+
+            expect($oklab->getAlpha())->toBe(0.5);
+        });
     });
 
     describe('OklchColor', function (): void {
@@ -249,6 +351,22 @@ describe('Color space data classes', function (): void {
                 ->and($oklch->cValue())->toBe(0.0)
                 ->and($oklch->hValue())->toBe(0.0);
         });
+
+        it('getChannels returns all three channel values in order l, c, h', function (): void {
+            $oklch = new OklchColor(l: 75.0, c: 0.15, h: 30.0);
+
+            expect($oklch->getChannels())->toBe([75.0, 0.15, 30.0]);
+        });
+
+        it('getSpace returns oklch', function (): void {
+            expect((new OklchColor(l: 0.0, c: 0.0, h: 0.0))->getSpace())->toBe('oklch');
+        });
+
+        it('getAlpha returns the alpha channel value', function (): void {
+            $oklch = new OklchColor(l: 0.0, c: 0.0, h: 0.0, a: 0.5);
+
+            expect($oklch->getAlpha())->toBe(0.5);
+        });
     });
 
     describe('XyzColor', function (): void {
@@ -258,6 +376,28 @@ describe('Color space data classes', function (): void {
             expect($xyz->x)->toBe(0.3)
                 ->and($xyz->y)->toBe(0.2)
                 ->and($xyz->z)->toBe(0.5);
+        });
+
+        it('getChannels returns all three channel values in order x, y, z', function (): void {
+            $xyz = new XyzColor(x: 0.3, y: 0.2, z: 0.5);
+
+            expect($xyz->getChannels())->toBe([0.3, 0.2, 0.5]);
+        });
+
+        it('getSpace returns xyz-d65', function (): void {
+            expect((new XyzColor())->getSpace())->toBe('xyz-d65');
+        });
+
+        it('getAlpha returns 1.0', function (): void {
+            expect((new XyzColor())->getAlpha())->toBe(1.0);
+        });
+
+        it('defaults x, y, z to 0.0', function (): void {
+            $xyz = new XyzColor();
+
+            expect($xyz->x)->toBe(0.0)
+                ->and($xyz->y)->toBe(0.0)
+                ->and($xyz->z)->toBe(0.0);
         });
     });
 

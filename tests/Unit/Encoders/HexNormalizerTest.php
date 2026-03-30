@@ -15,7 +15,16 @@ describe('HexNormalizer', function (): void {
         });
 
         it('returns null if does not start with #', function (): void {
-            expect($this->normalizer->normalize('ff0000'))->toBeNull();
+            // '0aabbcc': without the guard, substr(1)='aabbcc' (6 valid hex chars) would return '#abc' — so this kills RemoveEarlyReturn
+            expect($this->normalizer->normalize('0aabbcc'))->toBeNull();
+        });
+
+        it('returns null for a string with only #', function (): void {
+            expect($this->normalizer->normalize('#'))->toBeNull();
+        });
+
+        it('returns null if starts with a non-hash symbol', function (): void {
+            expect($this->normalizer->normalize('@ff0000'))->toBeNull();
         });
 
         it('returns null for invalid hex characters', function (): void {
@@ -91,4 +100,4 @@ describe('HexNormalizer', function (): void {
             expect($result)->toBe('#f804');
         });
     });
-});
+})->covers(HexNormalizer::class);

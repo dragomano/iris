@@ -41,7 +41,7 @@
     "test-coverage": "vendor/bin/pest -d memory_limit=512M --colors=always --coverage --min=100",
     "test-coverage-clover": "vendor/bin/pest --colors=always --min=100 --coverage-clover coverage.xml",
     "test-coverage-html": "vendor/bin/pest --colors=always --min=100 --coverage-html coverage",
-    "test-mutate": "vendor/bin/pest --colors=always --mutate --covered-only -d memory_limit=1G --path=src"
+    "test-mutate": "vendor/bin/pest --colors=always --mutate --clear-cache -d memory_limit=2G --path=src tests"
   },
   "config": {
     "optimize-autoloader": true,

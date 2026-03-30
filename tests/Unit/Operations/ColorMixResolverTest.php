@@ -212,12 +212,16 @@ describe('ColorMixResolver', function (): void {
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5, premultiplied: true);
 
-            expect($result)->toBeInstanceOf(RgbColor::class);
+            // resultAlpha = 0.5*0.5 + 1.0*0.5 = 0.75
+            // rPremult = 1.0*0.5 = 0.5, rPremult2 = 0.0*1.0 = 0.0
+            // rMixed = 0.5*0.5 + 0.0*0.5 = 0.25; r = 0.25/0.75 ≈ 0.333
+            expect($result->r)->toBeCloseTo(0.333, 2)
+                ->and($result->a)->toBeCloseTo(0.75);
         });
 
         it('returns black when result alpha is zero', function (): void {
-            $a = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 0.0);
-            $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 0.0);
+            $a = new RgbColor(r: 1.0, g: 0.5, b: 0.25, a: 0.0);
+            $b = new RgbColor(r: 0.5, g: 0.25, b: 1.0, a: 0.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5, premultiplied: true);
 
@@ -233,7 +237,21 @@ describe('ColorMixResolver', function (): void {
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5, premultiplied: true);
 
-            expect($result)->toBeInstanceOf(RgbColor::class);
+            // r = null treated as 0: rPremult=0, rPremult2=0; r=0/0.75=0
+            expect($result->r)->toBeCloseTo(0.0)
+                ->and($result->a)->toBeCloseTo(0.75);
+        });
+
+        it('premultiplied mix produces correct channel values', function (): void {
+            $a = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0);
+            $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 1.0);
+
+            $result = $this->resolver->mixSrgb($a, $b, 0.5, premultiplied: true);
+
+            // resultAlpha = 1.0; rMixed = 1.0*0.5 + 0.0*0.5 = 0.5; r = 0.5/1.0 = 0.5
+            expect($result->r)->toBe(0.5)
+                ->and($result->b)->toBe(0.5)
+                ->and($result->a)->toBe(1.0);
         });
     });
 
@@ -296,6 +314,51 @@ describe('ColorMixResolver', function (): void {
             // longer: delta = -40 (negative and > -180), so h1 += 360 = 410
             // mid = (410 + 10) / 2 = 210
             expect($result->h)->toBeCloseTo(210.0);
+        });
+
+        it('uses longer path with asymmetric weight to distinguish plus/minus variants', function (): void {
+            $a = new OklchColor(l: 50.0, c: 10.0, h: 50.0, a: 1.0);
+            $b = new OklchColor(l: 50.0, c: 10.0, h: 10.0, a: 1.0);
+
+            $result = $this->resolver->mixOklch($a, $b, 0.75, 'longer');
+
+            // delta = -40, h1 += 360 = 410; mix(410, 10, 0.75) = 410*0.75 + 10*0.25 = 310
+            expect($result->h)->toBeCloseTo(310.0);
+        });
+
+        it('uses longer path when delta is exactly zero', function (): void {
+            $a = new OklchColor(l: 50.0, c: 10.0, h: 10.0, a: 1.0);
+            $b = new OklchColor(l: 50.0, c: 10.0, h: 10.0, a: 1.0);
+
+            $result = $this->resolver->mixOklch($a, $b, 0.5, 'longer');
+
+            // delta = 0: elseif(delta > -180 && delta <= 0) → true, h1 += 360 → 370
+            // mix(370, 10, 0.5) = 190
+            expect($result->h)->toBeCloseTo(190.0);
+        });
+
+        it('longer path skips both branches when delta is outside range', function (): void {
+            $a = new OklchColor(l: 50.0, c: 10.0, h: 10.0, a: 1.0);
+            $b = new OklchColor(l: 50.0, c: 10.0, h: 210.0, a: 1.0);
+
+            $result = $this->resolver->mixOklch($a, $b, 0.5, 'longer');
+
+            // delta = 200 (> 180): neither branch taken
+            // mix(10, 210, 0.5) = 110
+            expect($result->h)->toBeCloseTo(110.0);
+        });
+    });
+
+    describe('normalizeHue via mixLch', function (): void {
+        it('adds exactly 360 to normalize slightly-negative hue', function (): void {
+            // decreasing: h1 < h2 is false (-1 < -1 = false), no adjustment
+            // mix(-1, -1, 0.5) = -1, normalizeHue(-1) = -1 + 360 = 359
+            $a = new LchColor(l: 50.0, c: 10.0, h: -1.0);
+            $b = new LchColor(l: 50.0, c: 10.0, h: -1.0);
+
+            $result = $this->resolver->mixLch($a, $b, 0.5, 'decreasing');
+
+            expect($result->h)->toBe(359.0);
         });
     });
 
