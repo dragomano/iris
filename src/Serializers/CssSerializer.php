@@ -15,6 +15,10 @@ use Bugo\Iris\Spaces\OklchColor;
 use Bugo\Iris\Spaces\RgbColor;
 use Bugo\Iris\Spaces\XyzColor;
 
+use function implode;
+use function max;
+use function min;
+use function round;
 use function sprintf;
 
 final readonly class CssSerializer
@@ -23,12 +27,8 @@ final readonly class CssSerializer
 
     public function toCss(ColorValueInterface $color, bool $useHex = false): string
     {
-        if ($useHex && $color instanceof RgbColor) {
-            return $this->toHex($color);
-        }
-
         return match ($color::class) {
-            RgbColor::class   => $this->serializeRgb($color),
+            RgbColor::class   => $useHex ? $this->toHex($color) : $this->serializeRgb($color),
             HslColor::class   => $this->serializeHsl($color),
             HwbColor::class   => $this->serializeHwb($color),
             LabColor::class   => $this->serializeLab($color),
@@ -47,11 +47,9 @@ final readonly class CssSerializer
         $b = $this->toByte($color->b ?? 0.0);
         $a = $this->toByte($color->a);
 
-        if ($a < 255) {
-            return $this->hexEncoder->encodeRgba($r, $g, $b, $a);
-        }
-
-        return $this->hexEncoder->encodeRgb($r, $g, $b);
+        return $a < 255
+            ? $this->hexEncoder->encodeRgba($r, $g, $b, $a)
+            : $this->hexEncoder->encodeRgb($r, $g, $b);
     }
 
     private function serializeRgb(RgbColor $color): string
@@ -165,25 +163,15 @@ final readonly class CssSerializer
             $channelStrs[] = $channel === null ? 'none' : (string) $channel;
         }
 
-        if ($alpha < 1.0) {
-            return sprintf('color(%s %s / %.2f)', $space, implode(' ', $channelStrs), $alpha);
-        }
+        $channelList = implode(' ', $channelStrs);
 
-        return sprintf('color(%s %s)', $space, implode(' ', $channelStrs));
+        return $alpha < 1.0
+            ? sprintf('color(%s %s / %.2f)', $space, $channelList, $alpha)
+            : sprintf('color(%s %s)', $space, $channelList);
     }
 
     private function toByte(float $value): int
     {
-        $byte = (int) round($value * 255.0);
-
-        if ($byte < 0) {
-            return 0;
-        }
-
-        if ($byte > 255) {
-            return 255;
-        }
-
-        return $byte;
+        return max(0, min(255, (int) round($value * 255.0)));
     }
 }

@@ -33,11 +33,10 @@ use function substr;
 use function trim;
 
 use const M_PI;
+use const PHP_ROUND_HALF_UP;
 
 final readonly class Serializer
 {
-    private const ROUND_EPSILON = 1e-9;
-
     public function __construct(
         private HexNormalizer $hexColorNormalizer = new HexNormalizer(),
         private HexEncoder $hexColorEncoder = new HexEncoder(),
@@ -392,8 +391,12 @@ final readonly class Serializer
         ];
     }
 
-    private function createRgbFromHsl(?float $hue, ?float $saturation, ?float $lightness, float $alpha): RgbColor
-    {
+    private function createRgbFromHsl(
+        ?float $hue,
+        ?float $saturation,
+        ?float $lightness,
+        float $alpha
+    ): RgbColor {
         [$red, $green, $blue] = $this->colorSpaceConverter->hslToRgb(
             $hue ?? 0.0,
             $saturation ?? 0.0,
@@ -574,13 +577,21 @@ final readonly class Serializer
         return 0.5;
     }
 
-    private function mixInSrgb(ColorMixResolver $resolver, RgbColor $color1, RgbColor $color2, float $weight): RgbColor
-    {
+    private function mixInSrgb(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight
+    ): RgbColor {
         return $resolver->mixSrgb($color1, $color2, $weight);
     }
 
-    private function mixInHsl(ColorMixResolver $resolver, RgbColor $color1, RgbColor $color2, float $weight): RgbColor
-    {
+    private function mixInHsl(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight
+    ): RgbColor {
         $hsl1 = $this->rgbToHsl($color1);
         $hsl2 = $this->rgbToHsl($color2);
 
@@ -589,8 +600,12 @@ final readonly class Serializer
         return $this->hslToRgb($mixed);
     }
 
-    private function mixInOklab(ColorMixResolver $resolver, RgbColor $color1, RgbColor $color2, float $weight): RgbColor
-    {
+    private function mixInOklab(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight
+    ): RgbColor {
         $oklab1 = $this->colorSpaceConverter->normalizedRgbToOklch($color1, false);
         $oklab2 = $this->colorSpaceConverter->normalizedRgbToOklch($color2, false);
 
@@ -620,8 +635,12 @@ final readonly class Serializer
         );
     }
 
-    private function mixInOklch(ColorMixResolver $resolver, RgbColor $color1, RgbColor $color2, float $weight): RgbColor
-    {
+    private function mixInOklch(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight
+    ): RgbColor {
         $oklch1 = $this->colorSpaceConverter->normalizedRgbToOklch($color1, false);
         $oklch2 = $this->colorSpaceConverter->normalizedRgbToOklch($color2, false);
 
@@ -635,8 +654,12 @@ final readonly class Serializer
         return new RgbColor(r: $rgb->r, g: $rgb->g, b: $rgb->b, a: $mixed->a);
     }
 
-    private function mixInLab(ColorMixResolver $resolver, RgbColor $color1, RgbColor $color2, float $weight): RgbColor
-    {
+    private function mixInLab(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight
+    ): RgbColor {
         $lab1 = $this->rgbToLab($color1);
         $lab2 = $this->rgbToLab($color2);
 
@@ -645,8 +668,12 @@ final readonly class Serializer
         return $this->labToRgb($mixed->l ?? 0.0, $mixed->a ?? 0.0, $mixed->b ?? 0.0, $mixed->alpha);
     }
 
-    private function mixInLch(ColorMixResolver $resolver, RgbColor $color1, RgbColor $color2, float $weight): RgbColor
-    {
+    private function mixInLch(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight
+    ): RgbColor {
         $lch1 = $this->rgbToLch($color1);
         $lch2 = $this->rgbToLch($color2);
 
@@ -751,7 +778,11 @@ final readonly class Serializer
 
     private function isLegacyColorWithNone(string $value): bool
     {
-        if (! str_contains(strtolower($value), 'none') || ! str_contains($value, ',') || ! str_ends_with($value, ')')) {
+        if (
+            ! str_contains(strtolower($value), 'none')
+            || ! str_contains($value, ',')
+            || ! str_ends_with($value, ')')
+        ) {
             return false;
         }
 
@@ -793,15 +824,13 @@ final readonly class Serializer
         $length  = strlen($value);
 
         for ($i = 0; $i < $length; $i++) {
-            if ($value[$i] !== '/') {
-                continue;
-            }
+            if ($value[$i] === '/') {
+                if ($slashAt !== null) {
+                    return [null, null];
+                }
 
-            if ($slashAt !== null) {
-                return [null, null];
+                $slashAt = $i;
             }
-
-            $slashAt = $i;
         }
 
         if ($slashAt === null) {
@@ -989,15 +1018,7 @@ final readonly class Serializer
 
     private function roundAndClampByte(float $value): int
     {
-        if (abs($value - round($value)) < self::ROUND_EPSILON) {
-            $value = round($value);
-        }
-
-        if (abs(($value * 2.0) - round($value * 2.0)) < self::ROUND_EPSILON) {
-            $value += $value >= 0.0 ? self::ROUND_EPSILON : -self::ROUND_EPSILON;
-        }
-
-        $byte = (int) round($value);
+        $byte = (int) round($value, 0, PHP_ROUND_HALF_UP);
 
         if ($byte < 0) {
             return 0;

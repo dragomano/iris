@@ -6,6 +6,7 @@ namespace Bugo\Iris\Encoders;
 
 use function ctype_xdigit;
 use function in_array;
+use function str_starts_with;
 use function strlen;
 use function strtolower;
 use function substr;
@@ -18,7 +19,7 @@ final readonly class HexNormalizer
 
     public function normalize(string $value): ?string
     {
-        if ($value === '' || $value[0] !== '#') {
+        if (! str_starts_with($value, '#')) {
             return null;
         }
 

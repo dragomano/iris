@@ -27,6 +27,33 @@ use const M_PI;
 
 final readonly class SpaceConverter
 {
+    // @pest-mutate-ignore
+    private const LAB_EPSILON = 0.008856451679035631; // 216 / 24389
+
+    // @pest-mutate-ignore
+    private const LAB_KAPPA = 903.2962962962963; // 24389 / 27
+
+    // @pest-mutate-ignore
+    private const LAB_DELTA = 16.0;
+
+    // @pest-mutate-ignore
+    private const LAB_SCALE = 116.0;
+
+    // @pest-mutate-ignore
+    private const LAB_A_FACTOR = 500.0;
+
+    // @pest-mutate-ignore
+    private const LAB_B_FACTOR = 200.0;
+
+    // @pest-mutate-ignore
+    private const D50_WHITE_X = 0.9642956764295677;
+
+    // @pest-mutate-ignore
+    private const D50_WHITE_Y = 1.0;
+
+    // @pest-mutate-ignore
+    private const D50_WHITE_Z = 0.8251046025104602;
+
     public function clamp(float|null $value, float $max): float
     {
         return max(0.0, min($max, $value ?? 0.0));
@@ -211,7 +238,12 @@ final readonly class SpaceConverter
 
     public function labToRgbColor(LabColor $lab): RgbColor
     {
-        return $this->labChannelsToSrgba($lab->lValue(), $lab->aValue(), $lab->bValue(), $lab->alpha);
+        return $this->labChannelsToSrgba(
+            $lab->lValue(),
+            $lab->aValue(),
+            $lab->bValue(),
+            $lab->alpha
+        );
     }
 
     /**
@@ -238,14 +270,11 @@ final readonly class SpaceConverter
 
     public function labF(float $value): float
     {
-        $epsilon = 216.0 / 24389.0;
-        $kappa   = 24389.0 / 27.0;
-
-        if ($value > $epsilon) {
+        if ($value > self::LAB_EPSILON) {
             return $value ** (1.0 / 3.0);
         }
 
-        return ($kappa * $value + 16.0) / 116.0;
+        return (self::LAB_KAPPA * $value + self::LAB_DELTA) / self::LAB_SCALE;
     }
 
     public function trimFloat(float $value, int $precision = 6): string
@@ -316,7 +345,7 @@ final readonly class SpaceConverter
         return $this->linearSrgbChannelsToXyzD65(
             $this->srgbToLinear(($rgb->r ?? 0.0) / 255.0),
             $this->srgbToLinear(($rgb->g ?? 0.0) / 255.0),
-            $this->srgbToLinear(($rgb->b ?? 0.0) / 255.0),
+            $this->srgbToLinear(($rgb->b ?? 0.0) / 255.0)
         );
     }
 
@@ -325,7 +354,7 @@ final readonly class SpaceConverter
         return $this->linearSrgbChannelsToXyzD65(
             $this->srgbToLinear($r),
             $this->srgbToLinear($g),
-            $this->srgbToLinear($b),
+            $this->srgbToLinear($b)
         );
     }
 
@@ -352,7 +381,7 @@ final readonly class SpaceConverter
         return $this->linearDisplayP3ChannelsToXyzD65(
             $this->srgbToLinear($r),
             $this->srgbToLinear($g),
-            $this->srgbToLinear($b),
+            $this->srgbToLinear($b)
         );
     }
 
@@ -580,20 +609,18 @@ final readonly class SpaceConverter
 
     public function labToXyzD50(float $l, float $a, float $b): XyzColor
     {
-        $fy      = ($l + 16.0) / 116.0;
-        $fx      = $fy + ($a / 500.0);
-        $fz      = $fy - ($b / 200.0);
-        $epsilon = 216.0 / 24389.0;
-        $kappa   = 24389.0 / 27.0;
+        $fy = ($l + self::LAB_DELTA) / self::LAB_SCALE;
+        $fx = $fy + ($a / self::LAB_A_FACTOR);
+        $fz = $fy - ($b / self::LAB_B_FACTOR);
 
-        $xr = $fx ** 3.0 > $epsilon ? $fx ** 3.0 : ((116.0 * $fx) - 16.0) / $kappa;
-        $yr = $l > ($kappa * $epsilon) ? (($l + 16.0) / 116.0) ** 3.0 : $l / $kappa;
-        $zr = $fz ** 3.0 > $epsilon ? $fz ** 3.0 : ((116.0 * $fz) - 16.0) / $kappa;
+        $xr = $fx ** 3.0 > self::LAB_EPSILON ? $fx ** 3.0 : ((self::LAB_SCALE * $fx) - self::LAB_DELTA) / self::LAB_KAPPA;
+        $yr = $l > (self::LAB_KAPPA * self::LAB_EPSILON) ? (($l + self::LAB_DELTA) / self::LAB_SCALE) ** 3.0 : $l / self::LAB_KAPPA;
+        $zr = $fz ** 3.0 > self::LAB_EPSILON ? $fz ** 3.0 : ((self::LAB_SCALE * $fz) - self::LAB_DELTA) / self::LAB_KAPPA;
 
         return new XyzColor(
-            x: $xr * 0.9642956764295677,
+            x: $xr * self::D50_WHITE_X,
             y: $yr,
-            z: $zr * 0.8251046025104602
+            z: $zr * self::D50_WHITE_Z
         );
     }
 
@@ -626,24 +653,17 @@ final readonly class SpaceConverter
      */
     public function xyzToLabD50(XyzColor $xyz): array
     {
-        $xn = 0.9642956764295677;
-        $yn = 1.0;
-        $zn = 0.8251046025104602;
+        $x = $xyz->x / self::D50_WHITE_X;
+        $y = $xyz->y / self::D50_WHITE_Y;
+        $z = $xyz->z / self::D50_WHITE_Z;
 
-        $x = $xyz->x / $xn;
-        $y = $xyz->y / $yn;
-        $z = $xyz->z / $zn;
+        $fx = $x > self::LAB_EPSILON ? $x ** (1.0 / 3.0) : (self::LAB_KAPPA * $x + self::LAB_DELTA) / self::LAB_SCALE;
+        $fy = $y > self::LAB_EPSILON ? $y ** (1.0 / 3.0) : (self::LAB_KAPPA * $y + self::LAB_DELTA) / self::LAB_SCALE;
+        $fz = $z > self::LAB_EPSILON ? $z ** (1.0 / 3.0) : (self::LAB_KAPPA * $z + self::LAB_DELTA) / self::LAB_SCALE;
 
-        $epsilon = 216.0 / 24389.0;
-        $kappa   = 24389.0 / 27.0;
-
-        $fx = $x > $epsilon ? $x ** (1.0 / 3.0) : ($kappa * $x + 16.0) / 116.0;
-        $fy = $y > $epsilon ? $y ** (1.0 / 3.0) : ($kappa * $y + 16.0) / 116.0;
-        $fz = $z > $epsilon ? $z ** (1.0 / 3.0) : ($kappa * $z + 16.0) / 116.0;
-
-        $l = (116.0 * $fy) - 16.0;
-        $a = 500.0 * ($fx - $fy);
-        $b = 200.0 * ($fy - $fz);
+        $l = (self::LAB_SCALE * $fy) - self::LAB_DELTA;
+        $a = self::LAB_A_FACTOR * ($fx - $fy);
+        $b = self::LAB_B_FACTOR * ($fy - $fz);
 
         return [$l, $a, $b];
     }

@@ -21,7 +21,11 @@ final readonly class PerceptualManipulator
      */
     public function adjustOklch(OklchColor $color, array $values): OklchColor
     {
-        return $this->modifyOklch($color, $values, static fn(float $current, float $value): float => $current + $value);
+        return $this->modifyOklch(
+            $color,
+            $values,
+            static fn(float $current, float $value): float => $current + $value
+        );
     }
 
     /**
@@ -29,7 +33,11 @@ final readonly class PerceptualManipulator
      */
     public function changeOklch(OklchColor $color, array $values): OklchColor
     {
-        return $this->modifyOklch($color, $values, static fn(float $current, float $value): float => $value);
+        return $this->modifyOklch(
+            $color,
+            $values,
+            static fn(float $current, float $value): float => $value
+        );
     }
 
     /**
@@ -37,7 +45,11 @@ final readonly class PerceptualManipulator
      */
     public function adjustLab(LabColor $color, array $values): LabColor
     {
-        return $this->modifyLab($color, $values, static fn(float $current, float $value): float => $current + $value);
+        return $this->modifyLab(
+            $color,
+            $values,
+            static fn(float $current, float $value): float => $current + $value
+        );
     }
 
     /**
@@ -45,7 +57,11 @@ final readonly class PerceptualManipulator
      */
     public function changeLab(LabColor $color, array $values): LabColor
     {
-        return $this->modifyLab($color, $values, static fn(float $current, float $value): float => $value);
+        return $this->modifyLab(
+            $color,
+            $values,
+            static fn(float $current, float $value): float => $value
+        );
     }
 
     /**
@@ -81,11 +97,9 @@ final readonly class PerceptualManipulator
      */
     private function modifyNumber(float $current, ?float $value, callable $modify): float
     {
-        if ($value === null) {
-            return $current;
-        }
-
-        return $this->colorSpaceConverter->clamp($modify($current, $value), 1.0);
+        return $value === null
+            ? $current
+            : $this->colorSpaceConverter->clamp($modify($current, $value), 1.0);
     }
 
     /**

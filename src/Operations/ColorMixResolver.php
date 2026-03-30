@@ -83,16 +83,8 @@ final readonly class ColorMixResolver
 
     private function channel(?float $a, ?float $b, float $weight): ?float
     {
-        if ($a === null && $b === null) {
-            return null;
-        }
-
-        if ($a === null) {
-            return $b;
-        }
-
-        if ($b === null) {
-            return $a;
+        if ($a === null || $b === null) {
+            return $a ?? $b;
         }
 
         return $this->converter->mixChannel($a, $b, $weight);
@@ -100,16 +92,8 @@ final readonly class ColorMixResolver
 
     private function hue(?float $h1, ?float $h2, float $weight, string $method): ?float
     {
-        if ($h1 === null && $h2 === null) {
-            return null;
-        }
-
-        if ($h1 === null) {
-            return $h2;
-        }
-
-        if ($h2 === null) {
-            return $h1;
+        if ($h1 === null || $h2 === null) {
+            return $h1 ?? $h2;
         }
 
         return $this->interpolateHueWithMethod($h1, $h2, $weight, $method);
@@ -122,7 +106,9 @@ final readonly class ColorMixResolver
 
             if ($delta > 0.0 && $delta < 180.0) {
                 $h2 += 360.0;
-            } elseif ($delta > -180.0 && $delta <= 0.0) {
+            }
+
+            if ($delta > -180.0 && $delta <= 0.0) {
                 $h1 += 360.0;
             }
 
@@ -152,38 +138,24 @@ final readonly class ColorMixResolver
     {
         $h = fmod($hue, 360.0);
 
-        if ($h < 0.0) {
-            $h += 360.0;
-        }
-
-        return $h;
+        return $h < 0.0 ? $h + 360.0 : $h;
     }
 
     private function mixSrgbPremultiplied(RgbColor $a, RgbColor $b, float $weight): RgbColor
     {
         $resultAlpha = $this->converter->mixChannel($a->a, $b->a, $weight);
 
-        if ($resultAlpha <= 0.0) {
-            return new RgbColor(r: 0.0, g: 0.0, b: 0.0, a: 0.0);
-        }
+        $rMixed = ($a->r ?? 0.0) * $a->a * $weight + ($b->r ?? 0.0) * $b->a * (1.0 - $weight);
+        $gMixed = ($a->g ?? 0.0) * $a->a * $weight + ($b->g ?? 0.0) * $b->a * (1.0 - $weight);
+        $bMixed = ($a->b ?? 0.0) * $a->a * $weight + ($b->b ?? 0.0) * $b->a * (1.0 - $weight);
 
-        $rPremult = ($a->r ?? 0.0) * $a->a;
-        $gPremult = ($a->g ?? 0.0) * $a->a;
-        $bPremult = ($a->b ?? 0.0) * $a->a;
-
-        $rPremult2 = ($b->r ?? 0.0) * $b->a;
-        $gPremult2 = ($b->g ?? 0.0) * $b->a;
-        $bPremult2 = ($b->b ?? 0.0) * $b->a;
-
-        $rMixed = $rPremult * $weight + $rPremult2 * (1.0 - $weight);
-        $gMixed = $gPremult * $weight + $gPremult2 * (1.0 - $weight);
-        $bMixed = $bPremult * $weight + $bPremult2 * (1.0 - $weight);
-
-        return new RgbColor(
-            r: $rMixed / $resultAlpha,
-            g: $gMixed / $resultAlpha,
-            b: $bMixed / $resultAlpha,
-            a: $resultAlpha
-        );
+        return $resultAlpha > 0.0
+            ? new RgbColor(
+                r: $rMixed / $resultAlpha,
+                g: $gMixed / $resultAlpha,
+                b: $bMixed / $resultAlpha,
+                a: $resultAlpha
+            )
+            : new RgbColor(r: 0.0, g: 0.0, b: 0.0, a: 0.0);
     }
 }
