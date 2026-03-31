@@ -33,10 +33,11 @@ use function substr;
 use function trim;
 
 use const M_PI;
-use const PHP_ROUND_HALF_UP;
 
 final readonly class Serializer
 {
+    private const ROUND_EPSILON = 1e-9;
+
     public function __construct(
         private HexNormalizer $hexColorNormalizer = new HexNormalizer(),
         private HexEncoder $hexColorEncoder = new HexEncoder(),
@@ -1018,7 +1019,7 @@ final readonly class Serializer
 
     private function roundAndClampByte(float $value): int
     {
-        $byte = (int) round($value, 0, PHP_ROUND_HALF_UP);
+        $byte = $this->roundCssByte($value);
 
         if ($byte < 0) {
             return 0;
@@ -1029,6 +1030,19 @@ final readonly class Serializer
         }
 
         return $byte;
+    }
+
+    private function roundCssByte(float $value): int
+    {
+        if (abs($value - round($value)) < self::ROUND_EPSILON) {
+            $value = round($value);
+        }
+
+        if (abs(($value * 2.0) - round($value * 2.0)) < self::ROUND_EPSILON) {
+            $value += $value >= 0.0 ? self::ROUND_EPSILON : -self::ROUND_EPSILON;
+        }
+
+        return (int) round($value);
     }
 
     private function labToRgb(float $l, float $a, float $b, float $alpha): RgbColor

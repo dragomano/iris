@@ -181,6 +181,12 @@ describe('Serializer', function (): void {
             expect($this->serializer->serialize('hsla(none, 50%, 50%, 0.5)', false))
                 ->toBe('hsla(none, 50%, 50%, 0.5)');
         });
+
+        it('serializes hsl colors to hex without float rounding artifacts', function () {
+            $result = $this->serializer->serialize('hsl(210deg 40% 50%)', true);
+
+            expect($result)->toBe('#4d80b3');
+        });
     });
 
     describe('serialize() - hwb colors', function (): void {
