@@ -26,48 +26,47 @@ final readonly class GamutMapper
 
     public function localMinde(OklchColor $oklch): OklchColor
     {
-        $minChroma  = 0.0;
-        $maxChroma  = $oklch->c ?? 0.0;
-        $minInGamut = true;
-        // @pest-mutate-ignore
-        $epsilon    = 0.0001;
+        $minChroma = 0.0;
+        $maxChroma = $oklch->c ?? 0.0;
 
         $current = $this->converter->oklchToSrgbUnclamped($oklch);
         $clipped = $this->clipRgb($current);
 
-        if ($this->converter->calculateDeltaE($current, $clipped) >= 0.02) {
-            while (($maxChroma - $minChroma) > $epsilon) {
-                $testChroma = ($minChroma + $maxChroma) / 2.0;
-                $current    = $this->converter->oklchToSrgbUnclamped(new OklchColor(
-                    l: $oklch->l,
-                    c: $testChroma,
-                    h: $oklch->h,
-                    a: $oklch->a
-                ));
-
-                $clipped     = $this->clipRgb($current);
-                $testInGamut = $current->r >= 0.0 && $current->r <= 1.0
-                    && $current->g >= 0.0 && $current->g <= 1.0
-                    && $current->b >= 0.0 && $current->b <= 1.0;
-
-                if ($minInGamut && $testInGamut) {
-                    $minChroma = $testChroma;
-
-                    continue;
-                }
-
-                $deltaE = $this->converter->calculateDeltaE($current, $clipped);
-
-                if ($deltaE < 0.02) {
-                    $minInGamut = false;
-                    $minChroma  = $testChroma;
-                } else {
-                    $maxChroma = $testChroma;
-                }
-            }
+        if ($this->converter->calculateDeltaE($current, $clipped) < 0.02) {
+            return $this->converter->normalizedSrgbToOklch($clipped);
         }
 
-        return $this->converter->normalizedSrgbToOklch($clipped);
+        $bestClipped = null;
+
+        while (($maxChroma - $minChroma) > 0.0001) {
+            $testChroma = ($minChroma + $maxChroma) / 2.0;
+            $testColor  = new OklchColor(
+                l: $oklch->l,
+                c: $testChroma,
+                h: $oklch->h,
+                a: $oklch->a
+            );
+
+            $current = $this->converter->oklchToSrgbUnclamped($testColor);
+            $clipped = $this->clipRgb($current);
+
+            $isInGamut = $current->r >= 0.0 && $current->r <= 1.0
+                && $current->g >= 0.0 && $current->g <= 1.0
+                && $current->b >= 0.0 && $current->b <= 1.0;
+
+            $deltaE = $this->converter->calculateDeltaE($current, $clipped);
+
+            if ($isInGamut || $deltaE < 0.02) {
+                $minChroma   = $testChroma;
+                $bestClipped = $clipped;
+
+                continue;
+            }
+
+            $maxChroma = $testChroma;
+        }
+
+        return $this->converter->normalizedSrgbToOklch($bestClipped ?? $clipped);
     }
 
     private function clipRgb(RgbColor $rgb): RgbColor
