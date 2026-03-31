@@ -149,6 +149,10 @@ final readonly class CssSerializer
         $y = $color->y;
         $z = $color->z;
 
+        if ($color->alpha < 1.0) {
+            return sprintf('color(xyz-d65 %s %s %s / %.2f)', $x, $y, $z, $color->alpha);
+        }
+
         return sprintf('color(xyz-d65 %s %s %s)', $x, $y, $z);
     }
 

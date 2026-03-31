@@ -77,7 +77,8 @@ final readonly class ColorMixResolver
         return new LchColor(
             l: $this->channel($a->l, $b->l, $weight),
             c: $this->channel($a->c, $b->c, $weight),
-            h: $this->hue($a->h, $b->h, $weight, $hueMethod)
+            h: $this->hue($a->h, $b->h, $weight, $hueMethod),
+            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight)
         );
     }
 

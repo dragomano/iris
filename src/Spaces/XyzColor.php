@@ -11,7 +11,8 @@ final readonly class XyzColor implements ColorValueInterface
     public function __construct(
         public float $x = 0.0,
         public float $y = 0.0,
-        public float $z = 0.0
+        public float $z = 0.0,
+        public float $alpha = 1.0
     ) {}
 
     public function getSpace(): string
@@ -26,6 +27,6 @@ final readonly class XyzColor implements ColorValueInterface
 
     public function getAlpha(): float
     {
-        return 1.0;
+        return $this->alpha;
     }
 }
