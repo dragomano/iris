@@ -320,6 +320,13 @@ describe('CssSerializer', function (): void {
 
             expect($result)->toBe('color(xyz-d65 0.9505 1 1.089)');
         });
+
+        it('formats XyzColor with alpha', function (): void {
+            $xyz = new XyzColor(x: 0.3, y: 0.2, z: 0.5, alpha: 0.5);
+            $result = $this->serializer->toCss($xyz);
+
+            expect($result)->toBe('color(xyz-d65 0.3 0.2 0.5 / 0.50)');
+        });
     });
 
     describe('toHex edge cases', function (): void {

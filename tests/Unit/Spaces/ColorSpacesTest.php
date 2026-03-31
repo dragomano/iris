@@ -169,6 +169,12 @@ describe('Color space data classes', function (): void {
             expect($hwb->getChannels())->toBe([240.0, 30.0, 10.0]);
         });
 
+        it('getChannels returns nulls for none channels', function (): void {
+            $hwb = new HwbColor(h: null, w: null, b: null);
+
+            expect($hwb->getChannels())->toBe([null, null, null]);
+        });
+
         it('getSpace returns hwb', function (): void {
             expect((new HwbColor(h: 0.0, w: 0.0, b: 0.0))->getSpace())->toBe('hwb');
         });

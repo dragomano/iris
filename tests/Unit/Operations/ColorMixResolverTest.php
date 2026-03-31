@@ -147,6 +147,15 @@ describe('ColorMixResolver', function (): void {
             expect($result->l)->toBeCloseTo(50.0)
                 ->and($result->c)->toBeCloseTo(30.0);
         });
+
+        it('interpolates alpha channel', function (): void {
+            $a = new LchColor(l: 50.0, c: 30.0, h: 90.0, alpha: 0.0);
+            $b = new LchColor(l: 50.0, c: 30.0, h: 90.0, alpha: 1.0);
+
+            $result = $this->resolver->mixLch($a, $b, 0.5);
+
+            expect($result->alpha)->toBeCloseTo(0.5);
+        });
     });
 
     describe('none channel handling (OklchColor)', function (): void {
