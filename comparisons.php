@@ -87,28 +87,29 @@ $targetSpaces = [
     'hwb',
 ];
 
-$options = parseCliOptions($argv ?? []);
-$pythonCommand = resolvePythonCommand($options);
+$options               = parseCliOptions($argv ?? []);
+$pythonCommand         = resolvePythonCommand($options);
 $pythonColourAvailable = $pythonCommand !== null && isPythonColourAvailable($pythonCommand);
-$colorjsAvailable = is_dir(__DIR__ . '/node_modules/colorjs.io');
+$colorjsAvailable      = is_dir(__DIR__ . '/node_modules/colorjs.io');
+
 $tools = [
     'colorjs'       => $colorjsAvailable,
     'python-colour' => $pythonColourAvailable,
 ];
 
-$tasks = buildTasks($testCases, $targetSpaces);
-$irisResults = loadIrisResults($tasks);
+$tasks          = buildTasks($testCases, $targetSpaces);
+$irisResults    = loadIrisResults($tasks);
 $colorjsResults = $colorjsAvailable ? loadColorJsResults($tasks) : [];
-$pythonResults = $pythonColourAvailable ? loadPythonColourResults($tasks, $pythonCommand) : [];
+$pythonResults  = $pythonColourAvailable ? loadPythonColourResults($tasks, $pythonCommand) : [];
 
 $allRows = [];
 
 foreach ($tasks as $task) {
-    $key = $task['key'];
-    $iris = $irisResults[$key] ?? null;
+    $key     = $task['key'];
+    $iris    = $irisResults[$key] ?? null;
     $colorjs = $colorjsResults[$key] ?? null;
-    $python = $pythonResults[$key] ?? null;
-    $match = determineMatch($iris, $colorjs, $python, $task['targetSpace']);
+    $python  = $pythonResults[$key] ?? null;
+    $match   = determineMatch($iris, $colorjs, $python, $task['targetSpace']);
 
     if ($options['onlyMismatches'] && $match === 'both') {
         continue;
@@ -125,7 +126,7 @@ foreach ($tasks as $task) {
     ];
 }
 
-$summary = summarizeMatches($tasks, $irisResults, $colorjsResults, $pythonResults);
+$summary   = summarizeMatches($tasks, $irisResults, $colorjsResults, $pythonResults);
 $timestamp = date('Y-m-d H:i:s');
 
 $reportPayload = [
@@ -150,8 +151,8 @@ function parseCliOptions(array $argv): array
 {
     $options = [
         'onlyMismatches' => false,
-        'format' => 'table',
-        'pythonCommand' => null,
+        'format'         => 'table',
+        'pythonCommand'  => null,
     ];
 
     foreach (array_slice($argv, 1) as $argument) {
@@ -190,9 +191,9 @@ function buildTasks(array $testCases, array $targetSpaces): array
     foreach ($testCases as $label => $testCase) {
         foreach ($targetSpaces as $targetSpace) {
             $tasks[] = [
-                'key' => taskKey($label, $targetSpace),
-                'label' => $label,
-                'input' => $testCase['input'],
+                'key'         => taskKey($label, $targetSpace),
+                'label'       => $label,
+                'input'       => $testCase['input'],
                 'sourceSpace' => $testCase['space'],
                 'targetSpace' => $targetSpace,
             ];
@@ -266,8 +267,8 @@ function runCommand(string $command): array
 
     if (! is_resource($process)) {
         return [
-            'stdout' => '',
-            'stderr' => '',
+            'stdout'   => '',
+            'stderr'   => '',
             'exitCode' => 1,
         ];
     }
@@ -281,8 +282,8 @@ function runCommand(string $command): array
     fclose($pipes[2]);
 
     return [
-        'stdout' => is_string($stdout) ? $stdout : '',
-        'stderr' => is_string($stderr) ? $stderr : '',
+        'stdout'   => is_string($stdout) ? $stdout : '',
+        'stderr'   => is_string($stderr) ? $stderr : '',
         'exitCode' => proc_close($process),
     ];
 }
@@ -308,8 +309,8 @@ function convertWithIris(string $inputColor, string $targetSpace): ?array
         }
 
         $converter = new SpaceConverter();
-        $router = new SpaceRouter($converter);
-        $xyz = convertParsedInputToXyzD65($parsed, $converter, $router);
+        $router    = new SpaceRouter($converter);
+        $xyz       = convertParsedInputToXyzD65($parsed, $converter, $router);
 
         if ($xyz === null) {
             return null;
@@ -331,9 +332,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => $matches[1],
+            'space'  => $matches[1],
             'values' => [(float) $matches[2], (float) $matches[3], (float) $matches[4]],
-            'alpha' => isset($matches[5]) ? (float) $matches[5] : 1.0,
+            'alpha'  => isset($matches[5]) ? (float) $matches[5] : 1.0,
         ];
     }
 
@@ -343,9 +344,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => 'lab',
+            'space'  => 'lab',
             'values' => [(float) $matches[1], (float) $matches[2], (float) $matches[3]],
-            'alpha' => isset($matches[4]) ? (float) $matches[4] : 1.0,
+            'alpha'  => isset($matches[4]) ? (float) $matches[4] : 1.0,
         ];
     }
 
@@ -355,9 +356,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => 'lch',
+            'space'  => 'lch',
             'values' => [(float) $matches[1], (float) $matches[2], parseHue($matches[3])],
-            'alpha' => isset($matches[4]) ? (float) $matches[4] : 1.0,
+            'alpha'  => isset($matches[4]) ? (float) $matches[4] : 1.0,
         ];
     }
 
@@ -367,9 +368,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => 'oklab',
+            'space'  => 'oklab',
             'values' => [(float) $matches[1] / 100.0, (float) $matches[2], (float) $matches[3]],
-            'alpha' => isset($matches[4]) ? (float) $matches[4] : 1.0,
+            'alpha'  => isset($matches[4]) ? (float) $matches[4] : 1.0,
         ];
     }
 
@@ -379,9 +380,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => 'oklch',
+            'space'  => 'oklch',
             'values' => [(float) $matches[1] / 100.0, (float) $matches[2], parseHue($matches[3])],
-            'alpha' => isset($matches[4]) ? (float) $matches[4] : 1.0,
+            'alpha'  => isset($matches[4]) ? (float) $matches[4] : 1.0,
         ];
     }
 
@@ -391,9 +392,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => 'hsl',
+            'space'  => 'hsl',
             'values' => [parseHue($matches[1]), (float) $matches[2] / 100.0, (float) $matches[3] / 100.0],
-            'alpha' => isset($matches[4]) ? (float) $matches[4] : 1.0,
+            'alpha'  => isset($matches[4]) ? (float) $matches[4] : 1.0,
         ];
     }
 
@@ -403,9 +404,9 @@ function parseInputColor(string $inputColor): ?array
         $matches
     )) {
         return [
-            'space' => 'hwb',
+            'space'  => 'hwb',
             'values' => [parseHue($matches[1]), (float) $matches[2] / 100.0, (float) $matches[3] / 100.0],
-            'alpha' => isset($matches[4]) ? (float) $matches[4] : 1.0,
+            'alpha'  => isset($matches[4]) ? (float) $matches[4] : 1.0,
         ];
     }
 
@@ -436,8 +437,8 @@ function convertParsedInputToXyzD65(array $parsed, SpaceConverter $converter, Sp
         'lch',
         'oklab',
         'oklch' => $router->convertToXyzD65($parsed['space'], $c1, $c2, $c3),
-        'hsl' => convertRgbToXyz($converter->hslToRgb($c1, $c2, $c3), $converter),
-        'hwb' => convertRgbToXyz($converter->hwbToRgb($c1, $c2, $c3), $converter),
+        'hsl'   => convertRgbToXyz($converter->hslToRgb($c1, $c2, $c3), $converter),
+        'hwb'   => convertRgbToXyz($converter->hwbToRgb($c1, $c2, $c3), $converter),
         default => null,
     };
 }
@@ -451,41 +452,41 @@ function convertXyzToTargetSpace(XyzColor $xyz, float $alpha, string $targetSpac
 {
     return match ($targetSpace) {
         'srgb' => [
-            'type' => 'srgb',
+            'type'   => 'srgb',
             'values' => rgbColorToArray($converter->xyzD65ToSrgba($xyz, $alpha)),
         ],
         'srgb-linear' => convertXyzToSrgbLinear($xyz, $alpha, $converter),
-        'display-p3' => [
-            'type' => 'display-p3',
+        'display-p3'  => [
+            'type'   => 'display-p3',
             'values' => [...$converter->xyzD65ToDisplayP3($xyz), $alpha],
         ],
         'display-p3-linear' => [
-            'type' => 'display-p3-linear',
+            'type'   => 'display-p3-linear',
             'values' => [...$converter->xyzD65ToLinearDisplayP3($xyz), $alpha],
         ],
         'a98-rgb' => [
-            'type' => 'a98-rgb',
+            'type'   => 'a98-rgb',
             'values' => [...$converter->xyzD65ToA98Rgb($xyz), $alpha],
         ],
         'prophoto-rgb' => convertXyzToProphoto($xyz, $alpha, $converter),
-        'rec2020' => [
-            'type' => 'rec2020',
+        'rec2020'      => [
+            'type'   => 'rec2020',
             'values' => [...$converter->xyzD65ToRec2020($xyz), $alpha],
         ],
         'xyz-d65' => [
-            'type' => 'xyz-d65',
+            'type'   => 'xyz-d65',
             'values' => [$xyz->x, $xyz->y, $xyz->z, $alpha],
         ],
         'xyz-d50' => convertXyzToD50($xyz, $alpha, $converter),
-        'lab' => convertXyzToLab($xyz, $alpha, $converter),
-        'lch' => convertXyzToLch($xyz, $alpha, $converter),
-        'oklab' => [
-            'type' => 'oklab',
+        'lab'     => convertXyzToLab($xyz, $alpha, $converter),
+        'lch'     => convertXyzToLch($xyz, $alpha, $converter),
+        'oklab'   => [
+            'type'   => 'oklab',
             'values' => [...$converter->xyzToOklabD65($xyz), $alpha],
         ],
         'oklch' => convertXyzToOklch($xyz, $alpha, $converter),
-        'hsl' => convertXyzToHsl($xyz, $alpha, $converter),
-        'hwb' => convertXyzToHwb($xyz, $alpha, $converter),
+        'hsl'   => convertXyzToHsl($xyz, $alpha, $converter),
+        'hwb'   => convertXyzToHwb($xyz, $alpha, $converter),
         default => null,
     };
 }
@@ -495,7 +496,7 @@ function convertXyzToSrgbLinear(XyzColor $xyz, float $alpha, SpaceConverter $con
     $rgb = $converter->xyzD65ToSrgba($xyz, $alpha);
 
     return [
-        'type' => 'srgb-linear',
+        'type'   => 'srgb-linear',
         'values' => [
             $converter->srgbToLinear($rgb->r),
             $converter->srgbToLinear($rgb->g),
@@ -510,7 +511,7 @@ function convertXyzToProphoto(XyzColor $xyz, float $alpha, SpaceConverter $conve
     $xyzD50 = $converter->xyzD65ToXyzD50($xyz);
 
     return [
-        'type' => 'prophoto-rgb',
+        'type'   => 'prophoto-rgb',
         'values' => [...$converter->xyzD50ToProphotoRgb($xyzD50), $alpha],
     ];
 }
@@ -520,7 +521,7 @@ function convertXyzToD50(XyzColor $xyz, float $alpha, SpaceConverter $converter)
     $xyzD50 = $converter->xyzD65ToXyzD50($xyz);
 
     return [
-        'type' => 'xyz-d50',
+        'type'   => 'xyz-d50',
         'values' => [$xyzD50->x, $xyzD50->y, $xyzD50->z, $alpha],
     ];
 }
@@ -528,10 +529,11 @@ function convertXyzToD50(XyzColor $xyz, float $alpha, SpaceConverter $converter)
 function convertXyzToLab(XyzColor $xyz, float $alpha, SpaceConverter $converter): array
 {
     $xyzD50 = $converter->xyzD65ToXyzD50($xyz);
+
     [$l, $a, $b] = $converter->xyzToLabD50($xyzD50);
 
     return [
-        'type' => 'lab',
+        'type'   => 'lab',
         'values' => [$l, $a, $b, $alpha],
     ];
 }
@@ -539,6 +541,7 @@ function convertXyzToLab(XyzColor $xyz, float $alpha, SpaceConverter $converter)
 function convertXyzToLch(XyzColor $xyz, float $alpha, SpaceConverter $converter): array
 {
     $xyzD50 = $converter->xyzD65ToXyzD50($xyz);
+
     [$l, $c, $h] = $converter->xyzToLchD50($xyzD50);
 
     if ($c <= 0.000001) {
@@ -560,7 +563,7 @@ function convertXyzToOklch(XyzColor $xyz, float $alpha, SpaceConverter $converte
     }
 
     return [
-        'type' => 'oklch',
+        'type'   => 'oklch',
         'values' => [$l, $c, normalizeHue($h), $alpha],
     ];
 }
@@ -570,7 +573,7 @@ function convertXyzToHsl(XyzColor $xyz, float $alpha, SpaceConverter $converter)
     $rgb = $converter->xyzD65ToSrgba($xyz, $alpha);
 
     return [
-        'type' => 'hsl',
+        'type'   => 'hsl',
         'values' => [...convertSrgbToHsl($rgb->r, $rgb->g, $rgb->b), $alpha],
     ];
 }
@@ -580,7 +583,7 @@ function convertXyzToHwb(XyzColor $xyz, float $alpha, SpaceConverter $converter)
     $rgb = $converter->xyzD65ToSrgba($xyz, $alpha);
 
     return [
-        'type' => 'hwb',
+        'type'   => 'hwb',
         'values' => [...convertSrgbToHwb($rgb->r, $rgb->g, $rgb->b), $alpha],
     ];
 }
@@ -592,9 +595,9 @@ function rgbColorToArray(RgbColor $rgb): array
 
 function convertSrgbToHsl(float $r, float $g, float $b): array
 {
-    $max = max($r, $g, $b);
-    $min = min($r, $g, $b);
-    $delta = $max - $min;
+    $max       = max($r, $g, $b);
+    $min       = min($r, $g, $b);
+    $delta     = $max - $min;
     $lightness = ($max + $min) / 2.0;
 
     if ($delta == 0.0) {
@@ -620,6 +623,7 @@ function convertSrgbToHwb(float $r, float $g, float $b): array
 {
     $max = max($r, $g, $b);
     $min = min($r, $g, $b);
+
     [$hue] = convertSrgbToHsl($r, $g, $b);
 
     return [$hue, $min * 100.0, (1.0 - $max) * 100.0];
@@ -1009,7 +1013,7 @@ function loadPythonColourResults(array $tasks, string $pythonCommand): array
 function loadExternalResults(array $tasks, string $prefix, string $script, string $command, array $extraArguments = []): array
 {
     $payloadFile = tempnam(sys_get_temp_dir(), $prefix . '-payload-');
-    $scriptFile = tempnam(sys_get_temp_dir(), $prefix . '-script-');
+    $scriptFile  = tempnam(sys_get_temp_dir(), $prefix . '-script-');
 
     if ($payloadFile === false || $scriptFile === false) {
         if ($payloadFile !== false) {
@@ -1022,7 +1026,7 @@ function loadExternalResults(array $tasks, string $prefix, string $script, strin
         return [];
     }
 
-    $extension = $command === 'node' ? '.cjs' : '.py';
+    $extension  = $command === 'node' ? '.cjs' : '.py';
     $scriptPath = $scriptFile . $extension;
 
     if (! @rename($scriptFile, $scriptPath)) {
@@ -1079,7 +1083,7 @@ function normalizeExternalResult(mixed $value): ?array
         return null;
     }
 
-    $type = $value['type'] ?? null;
+    $type   = $value['type'] ?? null;
     $values = $value['values'] ?? null;
 
     if (! is_string($type) || ! is_array($values)) {
@@ -1097,14 +1101,14 @@ function normalizeExternalResult(mixed $value): ?array
     }
 
     return [
-        'type' => $type,
+        'type'   => $type,
         'values' => $normalizedValues,
     ];
 }
 
 function determineMatch(?array $iris, ?array $colorjs, ?array $python, string $targetSpace): string
 {
-    $nodeMatch = compareResultSets($iris, $colorjs, $targetSpace);
+    $nodeMatch   = compareResultSets($iris, $colorjs, $targetSpace);
     $pythonMatch = compareResultSets($iris, $python, $targetSpace);
 
     if ($nodeMatch === 'yes' && $pythonMatch === 'yes') {
@@ -1132,7 +1136,7 @@ function compareResultSets(?array $left, ?array $right, string $space): string
         return 'n/a';
     }
 
-    $leftValues = $left['values'] ?? null;
+    $leftValues  = $left['values'] ?? null;
     $rightValues = $right['values'] ?? null;
 
     if (! is_array($leftValues) || ! is_array($rightValues) || count($leftValues) !== count($rightValues)) {
@@ -1298,7 +1302,7 @@ function formatValuesWithSwatch(?array $data): string
 function buildColorSwatch(array $data): ?string
 {
     $values = $data['values'] ?? null;
-    $type = $data['type'] ?? null;
+    $type   = $data['type'] ?? null;
 
     if (! is_array($values) || ! is_string($type) || count($values) < 3) {
         return null;
@@ -1306,10 +1310,10 @@ function buildColorSwatch(array $data): ?string
 
     try {
         $router = new SpaceRouter();
-        $alpha = isset($values[3]) ? (float) $values[3] : 1.0;
-        $rgba = match ($type) {
-            'hsl' => channelsToRgbColor(convertHslValuesToSrgb((float) $values[0], (float) $values[1], (float) $values[2]), $alpha),
-            'hwb' => channelsToRgbColor(convertHwbValuesToSrgb((float) $values[0], (float) $values[1], (float) $values[2]), $alpha),
+        $alpha  = isset($values[3]) ? (float) $values[3] : 1.0;
+        $rgba   = match ($type) {
+            'hsl'   => channelsToRgbColor(convertHslValuesToSrgb((float) $values[0], (float) $values[1], (float) $values[2]), $alpha),
+            'hwb'   => channelsToRgbColor(convertHwbValuesToSrgb((float) $values[0], (float) $values[1], (float) $values[2]), $alpha),
             default => $router->convertToRgba($type, (float) $values[0], (float) $values[1], (float) $values[2], $alpha),
         };
 
@@ -1414,9 +1418,9 @@ function parseFormattedColor(string $formattedValue): ?array
         return null;
     }
 
-    $type = substr($formattedValue, 0, $openingParenthesis);
+    $type         = substr($formattedValue, 0, $openingParenthesis);
     $valuesString = substr($formattedValue, $openingParenthesis + 1, $closingParenthesis - $openingParenthesis - 1);
-    $parts = array_map('trim', explode(',', $valuesString));
+    $parts        = array_map('trim', explode(',', $valuesString));
 
     if ($type === '' || $parts === []) {
         return null;
@@ -1433,7 +1437,7 @@ function parseFormattedColor(string $formattedValue): ?array
     }
 
     return [
-        'type' => $type,
+        'type'   => $type,
         'values' => $values,
     ];
 }
