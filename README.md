@@ -3,6 +3,8 @@
 ![PHP](https://img.shields.io/badge/PHP-^8.2-blue.svg?style=flat)
 [![Coverage Status](https://coveralls.io/repos/github/dragomano/iris/badge.svg?branch=main)](https://coveralls.io/github/dragomano/iris?branch=main)
 
+[По-русски](README.ru.md)
+
 **Color space conversions, serialization, and operations for legacy and modern CSS colors.**
 
 Named after Iris, the goddess of the rainbow in Greek mythology.
@@ -68,7 +70,7 @@ use Bugo\Iris\Converters\SpaceConverter;
 use Bugo\Iris\Spaces\RgbColor;
 
 $converter = new SpaceConverter();
-$rgb = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+$rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
 
 // RGB -> OKLCh object
 $oklch = $converter->rgbToOklch($rgb);
@@ -114,13 +116,13 @@ use Bugo\Iris\Manipulators\LegacyManipulator;
 use Bugo\Iris\Spaces\RgbColor;
 
 $manipulator = new LegacyManipulator();
-$color = new RgbColor(r: 200.0, g: 100.0, b: 50.0, a: 1.0);
+$color       = new RgbColor(r: 200.0, g: 100.0, b: 50.0, a: 1.0);
 
-$gray       = $manipulator->grayscale($color);
-$mixed      = $manipulator->mix($color, new RgbColor(0.0, 150.0, 255.0, 1.0), 0.5);
-$darker     = $manipulator->darken($color, 10.0);
-$saturated  = $manipulator->saturate($color, 20.0);
-$rotated    = $manipulator->spin($color, 30.0);
+$gray      = $manipulator->grayscale($color);
+$mixed     = $manipulator->mix($color, new RgbColor(0.0, 150.0, 255.0, 1.0), 0.5);
+$darker    = $manipulator->darken($color, 10.0);
+$saturated = $manipulator->saturate($color, 20.0);
+$rotated   = $manipulator->spin($color, 30.0);
 ```
 
 ### Gamut mapping
@@ -132,10 +134,10 @@ use Bugo\Iris\Operations\GamutMapper;
 use Bugo\Iris\Spaces\OklchColor;
 
 $mapper = new GamutMapper();
-$oklch = new OklchColor(l: 70.0, c: 40.0, h: 30.0, a: 1.0);
+$oklch  = new OklchColor(l: 70.0, c: 40.0, h: 30.0, a: 1.0);
 
 $clipped = $mapper->clip($oklch);
-$mapped = $mapper->localMinde($oklch);
+$mapped  = $mapper->localMinde($oklch);
 ```
 
 Both methods accept and return `OklchColor`. For other spaces, convert to `OklchColor` first.
@@ -174,14 +176,14 @@ use Bugo\Iris\Encoders\HexEncoder;
 use Bugo\Iris\Encoders\HexNormalizer;
 use Bugo\Iris\Encoders\HexShortener;
 
-$encoder = new HexEncoder();
-$shortener = new HexShortener();
+$encoder    = new HexEncoder();
+$shortener  = new HexShortener();
 $normalizer = new HexNormalizer();
 
-$hex = $encoder->encodeRgb(255, 128, 0);        // '#ff8000'
-$hexA = $encoder->encodeRgba(255, 128, 0, 255); // '#ff8000ff'
-$short = $shortener->shorten('#aabbcc');        // '#abc'
-$norm = $normalizer->normalize('#AABBCC');      // '#abc'
+$hex   = $encoder->encodeRgb(255, 128, 0);       // '#ff8000'
+$hexA  = $encoder->encodeRgba(255, 128, 0, 255); // '#ff8000ff'
+$short = $shortener->shorten('#aabbcc');         // '#abc'
+$norm  = $normalizer->normalize('#AABBCC');      // '#abc'
 ```
 
 ### Parsing CSS color literals
@@ -191,10 +193,10 @@ use Bugo\Iris\LiteralParser;
 use Bugo\Iris\Serializers\LiteralSerializer;
 use Bugo\Iris\Spaces\RgbColor;
 
-$converter = new LiteralParser();
+$converter  = new LiteralParser();
 $serializer = new LiteralSerializer();
 
-$rgbFromHex = $converter->toRgb('#ff8000');
+$rgbFromHex  = $converter->toRgb('#ff8000');
 $rgbFromName = $converter->toRgb('tomato');
 
 echo $serializer->serialize(new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0));
@@ -227,16 +229,16 @@ use Bugo\Iris\Spaces\OklchColor;
 use Bugo\Iris\Spaces\XyzColor;
 
 $serializer = new CssSerializer();
-$oklch = new OklchColor(l: 70.0, c: 15.0, h: 55.0, a: 1.0);
+$oklch      = new OklchColor(l: 70.0, c: 15.0, h: 55.0, a: 1.0);
 
 echo $serializer->toCss($oklch);       // 'oklch(70 15 55)'
 echo $serializer->toCss($oklch, true); // still serialized as a CSS color string
 
-$hsl = new HslColor(h: 30.0, s: 100.0, l: 50.0, a: 0.8);
-$lab = new LabColor(l: 50.0, a: 20.0, b: -30.0, alpha: 1.0);
-$lch = new LchColor(l: 70.0, c: 30.0, h: 180.0, alpha: 1.0);
+$hsl   = new HslColor(h: 30.0, s: 100.0, l: 50.0, a: 0.8);
+$lab   = new LabColor(l: 50.0, a: 20.0, b: -30.0, alpha: 1.0);
+$lch   = new LchColor(l: 70.0, c: 30.0, h: 180.0, alpha: 1.0);
 $oklab = new OklabColor(l: 0.5, a: 0.1, b: -0.05, alpha: 1.0);
-$xyz = new XyzColor(x: 0.9505, y: 1.0, z: 1.0890);
+$xyz   = new XyzColor(x: 0.9505, y: 1.0, z: 1.0890);
 
 echo $serializer->toCss($hsl);   // 'hsl(30 100% 50% / 0.80)'
 echo $serializer->toCss($lab);   // 'lab(50% 20 -30)'
@@ -254,9 +256,9 @@ use Bugo\Iris\Converters\ModelConverter;
 use Bugo\Iris\Spaces\RgbColor;
 
 $converter = new ModelConverter();
-$rgb = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
-$hsl = $converter->rgbToHslColor($rgb);
-$rgbBack = $converter->hslToRgbColor($hsl);
+$rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+$hsl       = $converter->rgbToHslColor($rgb);
+$rgbBack   = $converter->hslToRgbColor($hsl);
 ```
 
 ### Perceptual manipulations
@@ -302,14 +304,15 @@ use Bugo\Iris\Spaces\RgbColor;
 use Bugo\Iris\Spaces\XyzColor;
 
 $converter = new SpaceConverter();
-$rgb = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+$rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
 
 [$p3R, $p3G, $p3B] = $converter->rgbToDisplayP3($rgb);
-$a98 = $converter->rgbToA98Rgb($rgb);
-$prophoto = $converter->rgbToProphotoRgb($rgb);
-$rec2020 = $converter->rgbToRec2020($rgb);
 
-$xyz = new XyzColor(x: 0.5, y: 0.4, z: 0.2);
+$a98      = $converter->rgbToA98Rgb($rgb);
+$prophoto = $converter->rgbToProphotoRgb($rgb);
+$rec2020  = $converter->rgbToRec2020($rgb);
+
+$xyz       = new XyzColor(x: 0.5, y: 0.4, z: 0.2);
 $p3FromXyz = $converter->xyzD65ToDisplayP3($xyz);
 ```
 
@@ -319,6 +322,7 @@ $p3FromXyz = $converter->xyzD65ToDisplayP3($xyz);
 use Bugo\Iris\Operations\PolarMath;
 
 $math = new PolarMath();
+
 [$a, $b] = $math->toCartesian(chroma: 0.2, hue: 55.0);
 $radians = $math->toRadians(180.0); // pi
 ```
@@ -329,7 +333,7 @@ $radians = $math->toRadians(180.0); // pi
 use Bugo\Iris\NamedColors;
 
 $tomatoRgb = NamedColors::NAMED_RGB['tomato']; // [255.0, 99.0, 71.0]
-$redRgb = NamedColors::NAMED_RGB['red'];       // [255.0, 0.0, 0.0]
+$redRgb    = NamedColors::NAMED_RGB['red'];    // [255.0, 0.0, 0.0]
 
 $hex = NamedColors::toHex('tomato');      // '#ff6347'
 $hex = NamedColors::toHex('transparent'); // '#00000000'
