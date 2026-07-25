@@ -1016,11 +1016,7 @@ final readonly class SpaceConverter
     {
         $value = $this->clamp($value, 1.0);
 
-        if ($value < 0.08145) {
-            return $value / 4.5;
-        }
-
-        return (($value + 0.0993) / 1.0993) ** (1.0 / 0.45);
+        return $value ** 2.4;
     }
 
     private function linearToProphotoRgb(float $value): float
@@ -1038,11 +1034,7 @@ final readonly class SpaceConverter
     {
         $value = $this->clamp($value, 1.0);
 
-        if ($value < 0.0181) {
-            return $value * 4.5;
-        }
-
-        return 1.0993 * $value ** 0.45 - 0.0993;
+        return $value ** (1.0 / 2.4);
     }
 
     /**
