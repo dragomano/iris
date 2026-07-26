@@ -90,11 +90,15 @@ final readonly class SpaceConverter
     {
         $value ??= 0.0;
 
-        if ($value <= 0.04045) {
+        $abs = abs($value);
+
+        if ($abs <= 0.04045) {
             return $value / 12.92;
         }
 
-        return (($value + 0.055) / 1.055) ** 2.4;
+        $linear = (($abs + 0.055) / 1.055) ** 2.4;
+
+        return $value >= 0.0 ? $linear : -$linear;
     }
 
     public function linearToSrgb(float $value): float
@@ -110,11 +114,15 @@ final readonly class SpaceConverter
 
     public function linearToSrgbUnclamped(float $value): float
     {
-        if ($value <= 0.0031308) {
+        $abs = abs($value);
+
+        if ($abs <= 0.0031308) {
             return 12.92 * $value;
         }
 
-        return 1.055 * $value ** (1.0 / 2.4) - 0.055;
+        $companded = 1.055 * $abs ** (1.0 / 2.4) - 0.055;
+
+        return $value >= 0.0 ? $companded : -$companded;
     }
 
     public function cubeRoot(float $value): float
