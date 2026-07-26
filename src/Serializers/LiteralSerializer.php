@@ -41,8 +41,10 @@ final readonly class LiteralSerializer
     public function findNamedColor(int $red, int $green, int $blue, float $alpha): ?string
     {
         if (abs(1.0 - $alpha) < 0.00001) {
-            foreach (['black', 'white'] as $name) {
-                $channels = NamedColors::NAMED_RGB[$name];
+            foreach (NamedColors::NAMED_RGB as $name => $channels) {
+                if ($name === 'transparent') {
+                    continue;
+                }
 
                 if (
                     (int) $channels[0] === $red
