@@ -192,12 +192,12 @@ describe('SpaceConverter', function (): void {
             expect($this->converter->srgbToLinear(0.5))->toBeCloseTo(0.2140, 0.001);
         });
 
-        it('clamps values above 1', function (): void {
-            expect($this->converter->srgbToLinear(1.5))->toBe(1.0);
+        it('handles values above 1 without clamping', function (): void {
+            expect($this->converter->srgbToLinear(1.5))->toBeGreaterThan(1.0);
         });
 
-        it('clamps negative values to 0', function (): void {
-            expect($this->converter->srgbToLinear(-0.1))->toBe(0.0);
+        it('handles negative values without clamping', function (): void {
+            expect($this->converter->srgbToLinear(-0.1))->toBeLessThan(0.0);
         });
 
         it('linearToSrgb is inverse of srgbToLinear for 0', function (): void {
@@ -1157,7 +1157,7 @@ describe('SpaceConverter', function (): void {
 
             expect($rgb->r)->toBeCloseTo(0.46084, 4)
                 ->and($rgb->g)->toBeCloseTo(0.54888, 4)
-                ->and($rgb->b)->toBe(0.0);
+                ->and($rgb->b)->toBeLessThan(0.0);
         });
     });
 });

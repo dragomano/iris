@@ -77,13 +77,7 @@ final readonly class SpaceConverter
 
     public function srgbToLinear(float $value): float
     {
-        $value = $this->clamp($value, 1.0);
-
-        if ($value <= 0.04045) {
-            return $value / 12.92;
-        }
-
-        return (($value + 0.055) / 1.055) ** 2.4;
+        return $this->srgbToLinearUnclamped($value);
     }
 
     public function srgbToLinearUnclamped(float|null $value): float
@@ -103,13 +97,7 @@ final readonly class SpaceConverter
 
     public function linearToSrgb(float $value): float
     {
-        $value = $this->clamp($value, 1.0);
-
-        if ($value <= 0.0031308) {
-            return 12.92 * $value;
-        }
-
-        return 1.055 * $value ** (1.0 / 2.4) - 0.055;
+        return $this->linearToSrgbUnclamped($value);
     }
 
     public function linearToSrgbUnclamped(float $value): float
@@ -142,9 +130,7 @@ final readonly class SpaceConverter
         $hue = $hueDegrees / 360.0;
 
         if ($saturation <= 0.0) {
-            $channel = $this->clamp($lightness, 1.0);
-
-            return [$channel, $channel, $channel];
+            return [$lightness, $lightness, $lightness];
         }
 
         $q = $lightness < 0.5
@@ -189,21 +175,20 @@ final readonly class SpaceConverter
             r: ($rgb->r ?? 0.0) / 255.0,
             g: ($rgb->g ?? 0.0) / 255.0,
             b: ($rgb->b ?? 0.0) / 255.0,
-            a: $this->clamp($rgb->a, 1.0)
+            a: $rgb->a
         ), true);
     }
 
     public function oklchToSrgb(OklchColor $oklch): RgbColor
     {
-        $l = $this->clamp($oklch->l ?? 0.0, 100.0) / 100.0;
+        $l = ($oklch->l ?? 0.0) / 100.0;
         $c = max(0.0, $oklch->c ?? 0.0);
-        $a = $this->clamp($oklch->a, 1.0);
 
         [$labA, $labB] = $this->polarToCartesian($c, $oklch->h ?? 0.0);
 
         [$r, $g, $b] = $this->oklabToSrgb($l, $labA, $labB);
 
-        return new RgbColor(r: $r, g: $g, b: $b, a: $a);
+        return new RgbColor(r: $r, g: $g, b: $b, a: $oklch->a);
     }
 
     public function oklchToSrgbUnclamped(OklchColor $oklch): RgbColor
@@ -447,9 +432,9 @@ final readonly class SpaceConverter
 
     public function a98RgbChannelsToXyzD65(float $r, float $g, float $b): XyzColor
     {
-        $r = $this->clamp($r, 1.0) ** (563.0 / 256.0);
-        $g = $this->clamp($g, 1.0) ** (563.0 / 256.0);
-        $b = $this->clamp($b, 1.0) ** (563.0 / 256.0);
+        $r = ($r >= 0.0 ? 1.0 : -1.0) * (abs($r) ** (563.0 / 256.0));
+        $g = ($g >= 0.0 ? 1.0 : -1.0) * (abs($g) ** (563.0 / 256.0));
+        $b = ($b >= 0.0 ? 1.0 : -1.0) * (abs($b) ** (563.0 / 256.0));
 
         return new XyzColor(
             x: 0.5767309 * $r + 0.1855540 * $g + 0.1881852 * $b,
@@ -1006,43 +991,45 @@ final readonly class SpaceConverter
 
     private function linearToA98Rgb(float $value): float
     {
-        return $this->clamp($value, 1.0) ** (256.0 / 563.0);
+        $abs = abs($value);
+
+        return ($value >= 0.0 ? 1.0 : -1.0) * ($abs ** (256.0 / 563.0));
     }
 
     private function prophotoToLinear(float $value): float
     {
-        $value = $this->clamp($value, 1.0);
+        $abs = abs($value);
 
-        if ($value <= 16.0 / 512.0) {
+        if ($abs <= 16.0 / 512.0) {
             return $value / 16.0;
         }
 
-        return $value ** 1.8;
+        return ($value >= 0.0 ? 1.0 : -1.0) * ($abs ** 1.8);
     }
 
     private function rec2020ToLinear(float $value): float
     {
-        $value = $this->clamp($value, 1.0);
+        $abs = abs($value);
 
-        return $value ** 2.4;
+        return ($value >= 0.0 ? 1.0 : -1.0) * ($abs ** 2.4);
     }
 
     private function linearToProphotoRgb(float $value): float
     {
-        $value = $this->clamp($value, 1.0);
+        $abs = abs($value);
 
-        if ($value <= 1.0 / 512.0) {
+        if ($abs <= 1.0 / 512.0) {
             return $value * 16.0;
         }
 
-        return $value ** (1.0 / 1.8);
+        return ($value >= 0.0 ? 1.0 : -1.0) * ($abs ** (1.0 / 1.8));
     }
 
     private function linearToRec2020(float $value): float
     {
-        $value = $this->clamp($value, 1.0);
+        $abs = abs($value);
 
-        return $value ** (1.0 / 2.4);
+        return ($value >= 0.0 ? 1.0 : -1.0) * ($abs ** (1.0 / 2.4));
     }
 
     /**
