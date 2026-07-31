@@ -25,9 +25,9 @@ final readonly class ColorMixResolver
         }
 
         return new RgbColor(
-            r: $this->channel($a->r, $b->r, $weight) ?? 0.0,
-            g: $this->channel($a->g, $b->g, $weight) ?? 0.0,
-            b: $this->channel($a->b, $b->b, $weight) ?? 0.0,
+            r: $this->channel($a->r, $b->r, $weight),
+            g: $this->channel($a->g, $b->g, $weight),
+            b: $this->channel($a->b, $b->b, $weight),
             a: $this->converter->mixChannel($a->a, $b->a, $weight)
         );
     }

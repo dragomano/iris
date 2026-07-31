@@ -224,7 +224,7 @@ final readonly class SpaceConverter
     {
         $xyz50 = $this->labToXyzD50($l, $a, $b);
 
-        [$x65, $y65, $z65] = $this->xyzD50ToD65($xyz50->x, $xyz50->y, $xyz50->z);
+        [$x65, $y65, $z65] = $this->xyzD50ToD65($xyz50->xValue(), $xyz50->yValue(), $xyz50->zValue());
 
         return $this->xyzD65ToSrgbChannels($x65, $y65, $z65);
     }
@@ -328,7 +328,7 @@ final readonly class SpaceConverter
     {
         $xyz = $this->rgbToXyzD65($rgb);
 
-        [$x, $y, $z] = $this->xyzD65ToD50($xyz->x, $xyz->y, $xyz->z);
+        [$x, $y, $z] = $this->xyzD65ToD50($xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0);
 
         return new XyzColor(x: $x, y: $y, z: $z);
     }
@@ -415,7 +415,7 @@ final readonly class SpaceConverter
 
     public function xyzD65ToSrgba(XyzColor $xyz, float $opacity): RgbColor
     {
-        [$r, $g, $b] = $this->xyzD65ToSrgbChannels($xyz->x, $xyz->y, $xyz->z);
+        [$r, $g, $b] = $this->xyzD65ToSrgbChannels($xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0);
 
         return new RgbColor(
             r: $r,
@@ -491,10 +491,14 @@ final readonly class SpaceConverter
      */
     public function xyzD65ToLinearDisplayP3(XyzColor $xyz): array
     {
+        $x = $xyz->x ?? 0.0;
+        $y = $xyz->y ?? 0.0;
+        $z = $xyz->z ?? 0.0;
+
         return [
-            2.49349691194142450 * $xyz->x - 0.93138361791912360 * $xyz->y - 0.40271078445071684 * $xyz->z,
-            -0.82948896956157490 * $xyz->x + 1.76266406031834680 * $xyz->y + 0.02362468584194359 * $xyz->z,
-            0.03584583024378433 * $xyz->x - 0.07617238926804170 * $xyz->y + 0.95688452400768730 * $xyz->z,
+            2.49349691194142450 * $x - 0.93138361791912360 * $y - 0.40271078445071684 * $z,
+            -0.82948896956157490 * $x + 1.76266406031834680 * $y + 0.02362468584194359 * $z,
+            0.03584583024378433 * $x - 0.07617238926804170 * $y + 0.95688452400768730 * $z,
         ];
     }
 
@@ -533,15 +537,19 @@ final readonly class SpaceConverter
      */
     public function xyzD65ToA98Rgb(XyzColor $xyz): array
     {
+        $x = $xyz->x ?? 0.0;
+        $y = $xyz->y ?? 0.0;
+        $z = $xyz->z ?? 0.0;
+
         return [
             $this->linearToA98Rgb(
-                2.04158790381074600 * $xyz->x - 0.56500697427885960 * $xyz->y - 0.34473135077832950 * $xyz->z
+                2.04158790381074600 * $x - 0.56500697427885960 * $y - 0.34473135077832950 * $z
             ),
             $this->linearToA98Rgb(
-                -0.96924363628087980 * $xyz->x + 1.87596750150772060 * $xyz->y + 0.04155505740717561 * $xyz->z
+                -0.96924363628087980 * $x + 1.87596750150772060 * $y + 0.04155505740717561 * $z
             ),
             $this->linearToA98Rgb(
-                0.01344428063203102 * $xyz->x - 0.11836239223101823 * $xyz->y + 1.01517499439120540 * $xyz->z
+                0.01344428063203102 * $x - 0.11836239223101823 * $y + 1.01517499439120540 * $z
             ),
         ];
     }
@@ -553,7 +561,7 @@ final readonly class SpaceConverter
     {
         $xyz = $this->rgbToXyzD65($rgb);
 
-        [$x, $y, $z] = $this->xyzD65ToD50($xyz->x, $xyz->y, $xyz->z);
+        [$x, $y, $z] = $this->xyzD65ToD50($xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0);
 
         return $this->xyzD50ToProphotoRgb(new XyzColor($x, $y, $z));
     }
@@ -563,14 +571,18 @@ final readonly class SpaceConverter
      */
     public function xyzD50ToProphotoRgb(XyzColor $xyz): array
     {
+        $x = $xyz->x ?? 0.0;
+        $y = $xyz->y ?? 0.0;
+        $z = $xyz->z ?? 0.0;
+
         return [
             $this->linearToProphotoRgb(
-                1.34578688164715830 * $xyz->x - 0.25557208737979464 * $xyz->y - 0.05110186497554526 * $xyz->z
+                1.34578688164715830 * $x - 0.25557208737979464 * $y - 0.05110186497554526 * $z
             ),
             $this->linearToProphotoRgb(
-                -0.54463070512490190 * $xyz->x + 1.50824774284514680 * $xyz->y + 0.02052744743642139 * $xyz->z
+                -0.54463070512490190 * $x + 1.50824774284514680 * $y + 0.02052744743642139 * $z
             ),
-            $this->linearToProphotoRgb(0.00000000000000000 * $xyz->x + 0.00000000000000000 * $xyz->y + 1.21196754563894520 * $xyz->z),
+            $this->linearToProphotoRgb(0.00000000000000000 * $x + 0.00000000000000000 * $y + 1.21196754563894520 * $z),
         ];
     }
 
@@ -587,15 +599,19 @@ final readonly class SpaceConverter
      */
     public function xyzD65ToRec2020(XyzColor $xyz): array
     {
+        $x = $xyz->x ?? 0.0;
+        $y = $xyz->y ?? 0.0;
+        $z = $xyz->z ?? 0.0;
+
         return [
             $this->linearToRec2020(
-                1.71665118797126760 * $xyz->x - 0.35567078377639240 * $xyz->y - 0.25336628137365980 * $xyz->z
+                1.71665118797126760 * $x - 0.35567078377639240 * $y - 0.25336628137365980 * $z
             ),
             $this->linearToRec2020(
-                -0.66668435183248900 * $xyz->x + 1.61648123663493900 * $xyz->y + 0.01576854581391113 * $xyz->z
+                -0.66668435183248900 * $x + 1.61648123663493900 * $y + 0.01576854581391113 * $z
             ),
             $this->linearToRec2020(
-                0.01763985744531091 * $xyz->x - 0.04277061325780865 * $xyz->y + 0.94210312123547400 * $xyz->z
+                0.01763985744531091 * $x - 0.04277061325780865 * $y + 0.94210312123547400 * $z
             ),
         ];
     }
@@ -646,9 +662,9 @@ final readonly class SpaceConverter
      */
     public function xyzToLabD50(XyzColor $xyz): array
     {
-        $x = $xyz->x / self::D50_WHITE_X;
-        $y = $xyz->y / self::D50_WHITE_Y;
-        $z = $xyz->z / self::D50_WHITE_Z;
+        $x = ($xyz->x ?? 0.0) / self::D50_WHITE_X;
+        $y = ($xyz->y ?? 0.0) / self::D50_WHITE_Y;
+        $z = ($xyz->z ?? 0.0) / self::D50_WHITE_Z;
 
         $fx = $x > self::LAB_EPSILON ? $x ** (1.0 / 3.0) : (self::LAB_KAPPA * $x + self::LAB_DELTA) / self::LAB_SCALE;
         $fy = $y > self::LAB_EPSILON ? $y ** (1.0 / 3.0) : (self::LAB_KAPPA * $y + self::LAB_DELTA) / self::LAB_SCALE;
@@ -754,14 +770,18 @@ final readonly class SpaceConverter
      */
     public function xyzToOklabD65(XyzColor $xyz): array
     {
+        $x = $xyz->x ?? 0.0;
+        $y = $xyz->y ?? 0.0;
+        $z = $xyz->z ?? 0.0;
+
         $l = $this->cubeRoot(
-            0.81902243799670300 * $xyz->x + 0.36190626005289034 * $xyz->y - 0.12887378152098788 * $xyz->z
+            0.81902243799670300 * $x + 0.36190626005289034 * $y - 0.12887378152098788 * $z
         );
         $m = $this->cubeRoot(
-            0.03298365393238846 * $xyz->x + 0.92928686158634330 * $xyz->y + 0.03614466635064235 * $xyz->z
+            0.03298365393238846 * $x + 0.92928686158634330 * $y + 0.03614466635064235 * $z
         );
         $s = $this->cubeRoot(
-            0.04817718935962420 * $xyz->x + 0.26423953175273080 * $xyz->y + 0.63354782846943080 * $xyz->z
+            0.04817718935962420 * $x + 0.26423953175273080 * $y + 0.63354782846943080 * $z
         );
 
         return $this->lmsToOklab($l, $m, $s);
@@ -803,9 +823,9 @@ final readonly class SpaceConverter
 
     public function xyzD50ToLch(XyzColor $xyz): LchColor
     {
-        $xr = $xyz->x / 0.9642956764295677;
-        $yr = $xyz->y;
-        $zr = $xyz->z / 0.8251046025104602;
+        $xr = ($xyz->x ?? 0.0) / 0.9642956764295677;
+        $yr = $xyz->y ?? 0.0;
+        $zr = ($xyz->z ?? 0.0) / 0.8251046025104602;
 
         $fx = $this->labF($xr);
         $fy = $this->labF($yr);
@@ -872,14 +892,14 @@ final readonly class SpaceConverter
 
     public function xyzD50ToXyzD65(XyzColor $xyz): XyzColor
     {
-        [$x, $y, $z] = $this->xyzD50ToD65($xyz->x, $xyz->y, $xyz->z);
+        [$x, $y, $z] = $this->xyzD50ToD65($xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0);
 
         return new XyzColor($x, $y, $z);
     }
 
     public function xyzD65ToXyzD50(XyzColor $xyz): XyzColor
     {
-        [$x, $y, $z] = $this->xyzD65ToD50($xyz->x, $xyz->y, $xyz->z);
+        [$x, $y, $z] = $this->xyzD65ToD50($xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0);
 
         return new XyzColor($x, $y, $z);
     }
@@ -959,7 +979,7 @@ final readonly class SpaceConverter
         return new OklchColor(
             l: $l * 100.0,
             c: max(0.0, $chroma),
-            h: $this->normalizeHue($hue),
+            h: $chroma < 1e-6 ? null : $this->normalizeHue($hue),
             a: $alpha
         );
     }

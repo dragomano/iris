@@ -54,22 +54,22 @@ final readonly class CssSerializer
 
     private function serializeRgb(RgbColor $color): string
     {
-        $r = $this->toByte($color->r ?? 0.0);
-        $g = $this->toByte($color->g ?? 0.0);
-        $b = $this->toByte($color->b ?? 0.0);
+        $r = $color->r === null ? 'none' : (string) $this->toByte($color->r);
+        $g = $color->g === null ? 'none' : (string) $this->toByte($color->g);
+        $b = $color->b === null ? 'none' : (string) $this->toByte($color->b);
 
         if ($color->a < 1.0) {
-            return sprintf('rgb(%d %d %d / %.2f)', $r, $g, $b, $color->a);
+            return sprintf('rgb(%s %s %s / %.2f)', $r, $g, $b, $color->a);
         }
 
-        return sprintf('rgb(%d %d %d)', $r, $g, $b);
+        return sprintf('rgb(%s %s %s)', $r, $g, $b);
     }
 
     private function serializeHsl(HslColor $color): string
     {
-        $h = $color->h ?? 0.0;
-        $s = $color->s ?? 0.0;
-        $l = $color->l ?? 0.0;
+        $h = $color->h === null ? 'none' : (string) $color->h;
+        $s = $color->s === null ? 'none' : (string) $color->s;
+        $l = $color->l === null ? 'none' : (string) $color->l;
 
         if ($color->a < 1.0) {
             return sprintf('hsl(%s %s%% %s%% / %.2f)', $h, $s, $l, $color->a);
@@ -80,9 +80,9 @@ final readonly class CssSerializer
 
     private function serializeHwb(HwbColor $color): string
     {
-        $h = $color->h ?? 0.0;
-        $w = $color->w ?? 0.0;
-        $b = $color->b ?? 0.0;
+        $h = $color->h === null ? 'none' : (string) $color->h;
+        $w = $color->w === null ? 'none' : (string) $color->w;
+        $b = $color->b === null ? 'none' : (string) $color->b;
 
         if ($color->a < 1.0) {
             return sprintf('hwb(%s %s%% %s%% / %.2f)', $h, $w, $b, $color->a);
@@ -93,35 +93,35 @@ final readonly class CssSerializer
 
     private function serializeLab(LabColor $color): string
     {
-        $l = $color->l ?? 0.0;
-        $a = $color->a ?? 0.0;
-        $b = $color->b ?? 0.0;
+        $l = $color->l === null ? 'none' : (string) $color->l . '%';
+        $a = $color->a === null ? 'none' : (string) $color->a;
+        $b = $color->b === null ? 'none' : (string) $color->b;
 
         if ($color->alpha < 1.0) {
-            return sprintf('lab(%s%% %s %s / %.2f)', $l, $a, $b, $color->alpha);
+            return sprintf('lab(%s %s %s / %.2f)', $l, $a, $b, $color->alpha);
         }
 
-        return sprintf('lab(%s%% %s %s)', $l, $a, $b);
+        return sprintf('lab(%s %s %s)', $l, $a, $b);
     }
 
     private function serializeLch(LchColor $color): string
     {
-        $l = $color->l ?? 0.0;
-        $c = $color->c ?? 0.0;
-        $h = $color->h ?? 0.0;
+        $l = $color->l === null ? 'none' : (string) $color->l . '%';
+        $c = $color->c === null ? 'none' : (string) $color->c;
+        $h = $color->h === null ? 'none' : (string) $color->h;
 
         if ($color->alpha < 1.0) {
-            return sprintf('lch(%s%% %s %s / %.2f)', $l, $c, $h, $color->alpha);
+            return sprintf('lch(%s %s %s / %.2f)', $l, $c, $h, $color->alpha);
         }
 
-        return sprintf('lch(%s%% %s %s)', $l, $c, $h);
+        return sprintf('lch(%s %s %s)', $l, $c, $h);
     }
 
     private function serializeOklab(OklabColor $color): string
     {
-        $l = $color->l ?? 0.0;
-        $a = $color->a ?? 0.0;
-        $b = $color->b ?? 0.0;
+        $l = $color->l === null ? 'none' : (string) $color->l;
+        $a = $color->a === null ? 'none' : (string) $color->a;
+        $b = $color->b === null ? 'none' : (string) $color->b;
 
         if ($color->alpha < 1.0) {
             return sprintf('oklab(%s %s %s / %.2f)', $l, $a, $b, $color->alpha);
@@ -132,9 +132,9 @@ final readonly class CssSerializer
 
     private function serializeOklch(OklchColor $color): string
     {
-        $l = $color->l ?? 0.0;
-        $c = $color->c ?? 0.0;
-        $h = $color->h ?? 0.0;
+        $l = $color->l === null ? 'none' : (string) $color->l;
+        $c = $color->c === null ? 'none' : (string) $color->c;
+        $h = $color->h === null ? 'none' : (string) $color->h;
 
         if ($color->a < 1.0) {
             return sprintf('oklch(%s %s %s / %.2f)', $l, $c, $h, $color->a);
@@ -145,9 +145,9 @@ final readonly class CssSerializer
 
     private function serializeXyz(XyzColor $color): string
     {
-        $x = $color->x;
-        $y = $color->y;
-        $z = $color->z;
+        $x = $color->x === null ? 'none' : (string) $color->x;
+        $y = $color->y === null ? 'none' : (string) $color->y;
+        $z = $color->z === null ? 'none' : (string) $color->z;
 
         if ($color->alpha < 1.0) {
             return sprintf('color(xyz-d65 %s %s %s / %.2f)', $x, $y, $z, $color->alpha);

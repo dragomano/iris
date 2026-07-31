@@ -44,7 +44,7 @@ describe('CssSerializer', function (): void {
             $rgb = new RgbColor(r: null, g: 0.5, b: 0.0, a: 1.0);
             $result = $this->serializer->toCss($rgb);
 
-            expect($result)->toBe('rgb(0 128 0)');
+            expect($result)->toBe('rgb(none 128 0)');
         });
 
         it('converts HslColor to css string', function (): void {
@@ -227,7 +227,7 @@ describe('CssSerializer', function (): void {
             $rgb = new RgbColor(r: null, g: null, b: null, a: 1.0);
             $result = $this->serializer->toCss($rgb);
 
-            expect($result)->toBe('rgb(0 0 0)');
+            expect($result)->toBe('rgb(none none none)');
         });
 
         it('formats HslColor without alpha', function (): void {

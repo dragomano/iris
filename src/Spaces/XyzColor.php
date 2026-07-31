@@ -9,9 +9,9 @@ use Bugo\Iris\Contracts\ColorValueInterface;
 final readonly class XyzColor implements ColorValueInterface
 {
     public function __construct(
-        public float $x = 0.0,
-        public float $y = 0.0,
-        public float $z = 0.0,
+        public float|null $x = 0.0,
+        public float|null $y = 0.0,
+        public float|null $z = 0.0,
         public float $alpha = 1.0
     ) {}
 
@@ -28,5 +28,20 @@ final readonly class XyzColor implements ColorValueInterface
     public function getAlpha(): float
     {
         return $this->alpha;
+    }
+
+    public function xValue(): float
+    {
+        return $this->x ?? 0.0;
+    }
+
+    public function yValue(): float
+    {
+        return $this->y ?? 0.0;
+    }
+
+    public function zValue(): float
+    {
+        return $this->z ?? 0.0;
     }
 }
