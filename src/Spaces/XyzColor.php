@@ -29,19 +29,4 @@ final readonly class XyzColor implements ColorValueInterface
     {
         return $this->alpha;
     }
-
-    public function xValue(): float
-    {
-        return $this->x ?? 0.0;
-    }
-
-    public function yValue(): float
-    {
-        return $this->y ?? 0.0;
-    }
-
-    public function zValue(): float
-    {
-        return $this->z ?? 0.0;
-    }
 }

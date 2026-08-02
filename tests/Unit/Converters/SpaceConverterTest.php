@@ -146,20 +146,6 @@ describe('SpaceConverter', function (): void {
         });
     });
 
-    describe('roundFloat()', function (): void {
-        it('rounds to 6 decimal places by default', function (): void {
-            expect($this->converter->roundFloat(1.1234567))->toBeCloseTo(1.123457, 0.000001);
-        });
-
-        it('rounds to specified precision', function (): void {
-            expect($this->converter->roundFloat(1.567, 2))->toBeCloseTo(1.57, 0.001);
-        });
-
-        it('rounds exactly representable values unchanged', function (): void {
-            expect($this->converter->roundFloat(1.5, 6))->toBe(1.5);
-        });
-    });
-
     describe('cubeRoot()', function (): void {
         it('returns 0 for 0', function (): void {
             expect($this->converter->cubeRoot(0.0))->toBe(0.0);
@@ -978,6 +964,90 @@ describe('SpaceConverter', function (): void {
                 ->and($oklab->a)->toBeCloseTo(0.0, 0.000001)
                 ->and($oklab->b)->toBeCloseTo(0.0, 0.000001)
                 ->and($oklab->alpha)->toBe(0.6);
+        });
+    });
+
+    describe('lchToXyzD50', function (): void {
+        it('converts lch(50, 30, 150) to xyz-d50, matching labToXyzD50 via polar->cartesian', function (): void {
+            $xyz = $this->converter->lchToXyzD50(50.0, 30.0, 150.0);
+
+            expect($xyz->x)->toBeCloseTo(0.133258, 5)
+                ->and($xyz->y)->toBeCloseTo(0.184187, 5)
+                ->and($xyz->z)->toBeCloseTo(0.099449, 5);
+        });
+    });
+
+    describe('rgbToLab', function (): void {
+        it('converts rgb(255,0,0) to LabColor while preserving alpha', function (): void {
+            $lab = $this->converter->rgbToLab(new RgbColor(255.0, 0.0, 0.0, 1.0));
+
+            expect($lab)->toBeInstanceOf(LabColor::class)
+                ->and($lab->l)->toBeCloseTo(54.290541, 4)
+                ->and($lab->a)->toBeCloseTo(80.804928, 4)
+                ->and($lab->b)->toBeCloseTo(69.890965, 4)
+                ->and($lab->alpha)->toBe(1.0);
+        });
+
+        it('round-trips through labToRgb back to the original normalized channels', function (): void {
+            $original  = new RgbColor(200.0, 60.0, 90.0, 1.0);
+            $roundtrip = $this->converter->labToRgb($this->converter->rgbToLab($original));
+
+            expect($roundtrip->r)->toBeCloseTo(200.0 / 255.0, 4)
+                ->and($roundtrip->g)->toBeCloseTo(60.0 / 255.0, 4)
+                ->and($roundtrip->b)->toBeCloseTo(90.0 / 255.0, 4);
+        });
+    });
+
+    describe('lchToRgb', function (): void {
+        it('converts lch(50, 30, 150) to sRGB, matching lchChannelsToRgb', function (): void {
+            $rgb = $this->converter->lchToRgb(new LchColor(l: 50.0, c: 30.0, h: 150.0));
+
+            expect($rgb->r)->toBeCloseTo(0.29534, 4)
+                ->and($rgb->g)->toBeCloseTo(0.51255, 4)
+                ->and($rgb->b)->toBeCloseTo(0.36104, 4)
+                ->and($rgb->a)->toBe(1.0);
+        });
+    });
+
+    describe('rgbToOklab', function (): void {
+        it('converts rgb(255,0,0) to OklabColor while preserving alpha', function (): void {
+            $oklab = $this->converter->rgbToOklab(new RgbColor(255.0, 0.0, 0.0, 0.8));
+
+            expect($oklab)->toBeInstanceOf(OklabColor::class)
+                ->and($oklab->l)->toBeCloseTo(62.795536, 4)
+                ->and($oklab->a)->toBeCloseTo(0.224863, 4)
+                ->and($oklab->b)->toBeCloseTo(0.125846, 4)
+                ->and($oklab->alpha)->toBe(0.8);
+        });
+
+        it('round-trips through oklabToRgb back to the original normalized channels', function (): void {
+            $original  = new RgbColor(200.0, 60.0, 90.0, 1.0);
+            $roundtrip = $this->converter->oklabToRgb($this->converter->rgbToOklab($original));
+
+            expect($roundtrip->r)->toBeCloseTo(200.0 / 255.0, 4)
+                ->and($roundtrip->g)->toBeCloseTo(60.0 / 255.0, 4)
+                ->and($roundtrip->b)->toBeCloseTo(90.0 / 255.0, 4);
+        });
+    });
+
+    describe('oklabToRgb', function (): void {
+        it('converts oklab(60, 0.1, -0.05) to sRGB, matching oklabChannelsToRgb', function (): void {
+            $rgb = $this->converter->oklabToRgb(new OklabColor(l: 60.0, a: 0.1, b: -0.05, alpha: 0.9));
+
+            expect($rgb->r)->toBeCloseTo(0.65792, 4)
+                ->and($rgb->g)->toBeCloseTo(0.39817, 4)
+                ->and($rgb->b)->toBeCloseTo(0.61287, 4)
+                ->and($rgb->a)->toBeCloseTo(0.9, 5);
+        });
+    });
+
+    describe('xyzD65ToD50 (deprecated)', function (): void {
+        it('converts xyz d65 to d50, matching d65ToD50', function (): void {
+            [$x, $y, $z] = $this->converter->xyzD65ToD50(0.5, 0.5, 0.5);
+
+            expect($x)->toBeCloseTo(0.510342, 4)
+                ->and($y)->toBeCloseTo(0.501494, 4)
+                ->and($z)->toBeCloseTo(0.378843, 4);
         });
     });
 

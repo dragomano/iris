@@ -36,8 +36,8 @@ final readonly class ModelConverter
 
         return new HslColor(
             h: $h,
-            s: $this->colorSpaceConverter->roundFloat($s * 100.0),
-            l: $this->colorSpaceConverter->roundFloat($l * 100.0),
+            s: $this->roundFloat($s * 100.0),
+            l: $this->roundFloat($l * 100.0),
             a: $rgb->a
         );
     }
@@ -56,6 +56,11 @@ final readonly class ModelConverter
             b: $this->normalizeRgbChannel($b * 255.0),
             a: $this->colorSpaceConverter->clamp($hsl->a, 1.0)
         );
+    }
+
+    private function roundFloat(float $value, int $precision = 6): float
+    {
+        return round($value, $precision);
     }
 
     private function normalizeRgbChannel(float $value): float
