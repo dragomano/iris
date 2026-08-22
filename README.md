@@ -387,3 +387,5 @@ See [comparisons_results.md](comparisons_results.md) for the results.
 ## Useful links
 
 * https://www.w3.org/TR/css-color-4/
+* https://github.com/w3c/csswg-drafts/blob/main/css-color-4/conversions.js
+* https://github.com/color-js/color.js/tree/main/src/spaces
