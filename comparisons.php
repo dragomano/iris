@@ -9,6 +9,7 @@ declare(strict_types=1);
  * - bugo/iris (our package)
  * - colorjs.io (npm install colorjs.io)
  * - colour-science (pip install --user colour-science)
+ * - Dart Sass (npm install sass-embedded, or npm install sass as a fallback)
  *
  * Usage:
  *   php comparisons.php [--only-mismatches] [--format=table|json|markdown]
@@ -22,7 +23,7 @@ use Bugo\Iris\Spaces\RgbColor;
 use Bugo\Iris\Spaces\XyzColor;
 
 const NUMBER_PATTERN = '[+-]?(?:\d+(?:\.\d+)?|\.\d+)';
-const HUE_PATTERN = '[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:deg)?';
+const HUE_PATTERN    = '[+-]?(?:\d+(?:\.\d+)?|\.\d+)(?:deg)?';
 
 $testCases = [
     'srgb-red'           => ['input' => 'color(srgb 1 0 0)', 'space' => 'srgb'],
@@ -91,27 +92,36 @@ $options               = parseCliOptions($argv ?? []);
 $pythonCommand         = resolvePythonCommand($options);
 $pythonColourAvailable = $pythonCommand !== null && isPythonColourAvailable($pythonCommand);
 $colorjsAvailable      = is_dir(__DIR__ . '/node_modules/colorjs.io');
+$sassModule            = resolveSassModule();
+$sassAvailable         = $sassModule !== null;
 
 $tools = [
     'colorjs'       => $colorjsAvailable,
     'python-colour' => $pythonColourAvailable,
+    'sass'          => $sassAvailable ? $sassModule : false,
 ];
 
 $tasks          = buildTasks($testCases, $targetSpaces);
 $irisResults    = loadIrisResults($tasks);
 $colorjsResults = $colorjsAvailable ? loadColorJsResults($tasks) : [];
 $pythonResults  = $pythonColourAvailable ? loadPythonColourResults($tasks, $pythonCommand) : [];
+$sassResults    = $sassAvailable ? loadSassResults($tasks, $sassModule) : [];
+
+$externalResultSets = [
+    'colorjs' => $colorjsResults,
+    'python'  => $pythonResults,
+    'sass'    => $sassResults,
+];
 
 $allRows = [];
 
 foreach ($tasks as $task) {
-    $key     = $task['key'];
-    $iris    = $irisResults[$key] ?? null;
-    $colorjs = $colorjsResults[$key] ?? null;
-    $python  = $pythonResults[$key] ?? null;
-    $match   = determineMatch($iris, $colorjs, $python, $task['targetSpace']);
+    $key      = $task['key'];
+    $iris     = $irisResults[$key] ?? null;
+    $external = externalResultsForTask($externalResultSets, $key);
+    $match    = determineMatch($iris, $external, $task['targetSpace']);
 
-    if ($options['onlyMismatches'] && $match === 'both') {
+    if ($options['onlyMismatches'] && $match === 'all') {
         continue;
     }
 
@@ -120,13 +130,14 @@ foreach ($tasks as $task) {
         'Source'         => $task['sourceSpace'],
         'Target'         => $task['targetSpace'],
         'bugo/iris'      => formatValues($iris),
-        'colorjs.io'     => formatValues($colorjs),
-        'colour-science' => formatValues($python),
+        'colorjs.io'     => formatValues($external['colorjs']),
+        'colour-science' => formatValues($external['python']),
+        'Dart Sass'      => formatValues($external['sass']),
         'Match'          => $match,
     ];
 }
 
-$summary   = summarizeMatches($tasks, $irisResults, $colorjsResults, $pythonResults);
+$summary   = summarizeMatches($tasks, $irisResults, $externalResultSets);
 $timestamp = date('Y-m-d H:i:s');
 
 $reportPayload = [
@@ -253,6 +264,24 @@ function pythonCommandCandidates(): array
         'py -3',
         'py',
     ];
+}
+
+/**
+ * Prefers sass-embedded (the actively-developed, faster package the Sass team is
+ * moving primary development to) and falls back to the classic "sass" (Dart Sass
+ * compiled to pure JS) package if only that is installed. Both expose the same
+ * modern compileStringAsync() API since Dart Sass ~1.70, so the same Node script
+ * works unmodified regardless of which one is found.
+ */
+function resolveSassModule(): ?string
+{
+    foreach (['sass-embedded', 'sass'] as $candidate) {
+        if (is_dir(__DIR__ . '/node_modules/' . $candidate)) {
+            return $candidate;
+        }
+    }
+
+    return null;
 }
 
 function runCommand(string $command): array
@@ -697,6 +726,125 @@ function loadColorJsResults(array $tasks): array
     return loadExternalResults($tasks, 'colorjs', $script, 'node', [$modulePath]);
 }
 
+function loadSassResults(array $tasks, string $sassModule): array
+{
+    $script = <<<'JS'
+    const fs = require('fs');
+    const sass = require(process.argv[3]);
+
+    const payload = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+
+    // Dart Sass' color.to-space() $space argument names. Mostly match the CSS Color 4
+    // predefined-color-space / xyz / lab-ish identifiers. Note: "display-p3-linear" is
+    // NOT part of the CSS Color 4 spec itself (only "display-p3" is standard), but Dart
+    // Sass supports it anyway as its own extension for the linear variant - verified
+    // empirically to produce bit-identical values to xyzD65ToLinP3() in SpaceConverter.
+    const spaceMap = {
+      srgb: 'srgb',
+      'srgb-linear': 'srgb-linear',
+      'display-p3': 'display-p3',
+      'display-p3-linear': 'display-p3-linear',
+      'a98-rgb': 'a98-rgb',
+      'prophoto-rgb': 'prophoto-rgb',
+      rec2020: 'rec2020',
+      'xyz-d65': 'xyz-d65',
+      'xyz-d50': 'xyz-d50',
+      lab: 'lab',
+      lch: 'lch',
+      oklab: 'oklab',
+      oklch: 'oklch',
+      hsl: 'hsl',
+      hwb: 'hwb',
+    };
+
+    const channelNames = {
+      srgb: ['red', 'green', 'blue'],
+      'srgb-linear': ['red', 'green', 'blue'],
+      'display-p3': ['red', 'green', 'blue'],
+      'display-p3-linear': ['red', 'green', 'blue'],
+      'a98-rgb': ['red', 'green', 'blue'],
+      'prophoto-rgb': ['red', 'green', 'blue'],
+      rec2020: ['red', 'green', 'blue'],
+      'xyz-d65': ['x', 'y', 'z'],
+      'xyz-d50': ['x', 'y', 'z'],
+      lab: ['lightness', 'a', 'b'],
+      lch: ['lightness', 'chroma', 'hue'],
+      oklab: ['lightness', 'a', 'b'],
+      oklch: ['lightness', 'chroma', 'hue'],
+      hsl: ['hue', 'saturation', 'lightness'],
+      hwb: ['hue', 'whiteness', 'blackness'],
+    };
+
+    function normalizeHue(space, values) {
+      if ((space === 'lch' || space === 'oklch') && values[1] <= 1e-6) {
+        values[2] = 0;
+      }
+      if (space === 'hsl' && values[1] <= 1e-6) {
+        values[0] = 0;
+      }
+      if (space === 'hwb' && values[1] + values[2] >= 99.999999) {
+        values[0] = 0;
+      }
+      if (space === 'lch' || space === 'oklch' || space === 'hsl' || space === 'hwb') {
+        const hueIndex = (space === 'hsl' || space === 'hwb') ? 0 : 2;
+        values[hueIndex] = ((values[hueIndex] % 360) + 360) % 360;
+      }
+    }
+
+    async function convertOne(task) {
+      const mappedSpace = spaceMap[task.targetSpace];
+
+      if (!mappedSpace) {
+        return null;
+      }
+
+      const [c1, c2, c3] = channelNames[task.targetSpace];
+
+      const scss = `
+        @use "sass:color";
+        $__iris_c: ${task.input};
+        $__iris_r: color.to-space($__iris_c, ${mappedSpace});
+        .x {
+          --v: #{color.channel($__iris_r, '${c1}')},#{color.channel($__iris_r, '${c2}')},#{color.channel($__iris_r, '${c3}')},#{color.channel($__iris_r, 'alpha')};
+        }
+      `;
+
+      try {
+        const compiled = await sass.compileStringAsync(scss);
+        const match = compiled.css.match(/--v:\s*([^;]+);/);
+
+        if (!match) {
+          return null;
+        }
+
+        const values = match[1]
+          .split(',')
+          .map((component) => Number(Number(component.trim().replace(/deg$|%$/, '')).toFixed(6)));
+
+        normalizeHue(task.targetSpace, values);
+
+        return { type: task.targetSpace, values };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    (async () => {
+      const results = {};
+
+      for (const task of payload) {
+        results[task.key] = await convertOne(task);
+      }
+
+      process.stdout.write(JSON.stringify(results));
+    })();
+    JS;
+
+    $modulePath = __DIR__ . '/node_modules/' . $sassModule;
+
+    return loadExternalResults($tasks, 'sass', $script, 'node', [$modulePath]);
+}
+
 function loadPythonColourResults(array $tasks, string $pythonCommand): array
 {
     $script = <<<'PYTHON'
@@ -1106,28 +1254,58 @@ function normalizeExternalResult(mixed $value): ?array
     ];
 }
 
-function determineMatch(?array $iris, ?array $colorjs, ?array $python, string $targetSpace): string
+/**
+ * @param array<string, array<string, array|null>> $externalResultSets keyed by tool name, then by task key
+ * @return array<string, array|null> keyed by tool name for a single task
+ */
+function externalResultsForTask(array $externalResultSets, string $taskKey): array
 {
-    $nodeMatch   = compareResultSets($iris, $colorjs, $targetSpace);
-    $pythonMatch = compareResultSets($iris, $python, $targetSpace);
+    $result = [];
 
-    if ($nodeMatch === 'yes' && $pythonMatch === 'yes') {
-        return 'both';
+    foreach ($externalResultSets as $tool => $resultsByKey) {
+        $result[$tool] = $resultsByKey[$taskKey] ?? null;
     }
 
-    if ($nodeMatch === 'yes') {
-        return 'colorjs';
+    return $result;
+}
+
+/**
+ * Generalized N-tool match determination.
+ *
+ * Returns:
+ *  - 'n/a'  if no external tool has a usable result for this comparison
+ *  - 'all'  if every available external tool agrees with bugo/iris
+ *  - 'none' if no available external tool agrees with bugo/iris
+ *  - otherwise a '+'-joined list of the tool names that DID agree (partial match),
+ *    e.g. 'colorjs+sass' when python disagreed or was unavailable
+ *
+ * @param array<string, array|null> $externalResults keyed by tool name for this task
+ */
+function determineMatch(?array $iris, array $externalResults, string $targetSpace): string
+{
+    $matchByTool = [];
+
+    foreach ($externalResults as $tool => $result) {
+        $matchByTool[$tool] = compareResultSets($iris, $result, $targetSpace);
     }
 
-    if ($pythonMatch === 'yes') {
-        return 'python';
-    }
+    $available = array_filter($matchByTool, static fn(string $m): bool => $m !== 'n/a');
 
-    if ($nodeMatch === 'n/a' && $pythonMatch === 'n/a') {
+    if ($available === []) {
         return 'n/a';
     }
 
-    return 'none';
+    $agreeingTools = array_keys(array_filter($available, static fn(string $m): bool => $m === 'yes'));
+
+    if (count($agreeingTools) === count($available)) {
+        return 'all';
+    }
+
+    if ($agreeingTools === []) {
+        return 'none';
+    }
+
+    return implode('+', $agreeingTools);
 }
 
 function compareResultSets(?array $left, ?array $right, string $space): string
@@ -1240,26 +1418,19 @@ function normalizeHue(float $hue): float
     return $normalized;
 }
 
-function summarizeMatches(array $tasks, array $irisResults, array $colorjsResults, array $pythonResults): array
+/**
+ * @param array<string, array<string, array|null>> $externalResultSets
+ * @return array<string, int>
+ */
+function summarizeMatches(array $tasks, array $irisResults, array $externalResultSets): array
 {
-    $summary = [
-        'total'   => count($tasks),
-        'both'    => 0,
-        'colorjs' => 0,
-        'python'  => 0,
-        'none'    => 0,
-        'n/a'     => 0,
-    ];
+    $summary = ['total' => count($tasks)];
 
     foreach ($tasks as $task) {
-        $match = determineMatch(
-            $irisResults[$task['key']] ?? null,
-            $colorjsResults[$task['key']] ?? null,
-            $pythonResults[$task['key']] ?? null,
-            $task['targetSpace']
-        );
+        $external = externalResultsForTask($externalResultSets, $task['key']);
+        $match    = determineMatch($irisResults[$task['key']] ?? null, $external, $task['targetSpace']);
 
-        $summary[$match]++;
+        $summary[$match] = ($summary[$match] ?? 0) + 1;
     }
 
     return $summary;
@@ -1361,20 +1532,25 @@ function renderMarkdownReport(array $rows, array $summary, array $tools, string 
     $lines[] = '| bugo/iris | ✓ |';
     $lines[] = '| colorjs.io | ' . ($tools['colorjs'] ? '✓' : '✗') . ' |';
     $lines[] = '| colour-science | ' . ($tools['python-colour'] ? '✓' : '✗') . ' |';
+    $lines[] = '| Dart Sass | ' . ($tools['sass'] !== false ? '✓ (' . $tools['sass'] . ')' : '✗') . ' |';
     $lines[] = '';
     $lines[] = '## Summary';
     $lines[] = '';
     $lines[] = '- **Total comparisons:** ' . $summary['total'];
-    $lines[] = '- **Matched both:** ' . $summary['both'];
-    $lines[] = '- **Matched colorjs.io only:** ' . $summary['colorjs'];
-    $lines[] = '- **Matched colour-science only:** ' . $summary['python'];
-    $lines[] = '- **Matched neither:** ' . $summary['none'];
-    $lines[] = '- **Unavailable:** ' . $summary['n/a'];
+
+    foreach ($summary as $key => $count) {
+        if ($key === 'total') {
+            continue;
+        }
+
+        $lines[] = '- **' . summaryLabel($key) . ':** ' . $count;
+    }
+
     $lines[] = '';
     $lines[] = '## Results';
     $lines[] = '';
-    $lines[] = '| Input | Source | Target | bugo/iris | colorjs.io | colour-science | Match |';
-    $lines[] = '|-------|--------|--------|-----------|------------|----------------|-------|';
+    $lines[] = '| Input | Source | Target | bugo/iris | colorjs.io | colour-science | Dart Sass | Match |';
+    $lines[] = '|-------|--------|--------|-----------|------------|----------------|-----------|-------|';
 
     foreach ($rows as $row) {
         $lines[] = '| '
@@ -1384,6 +1560,7 @@ function renderMarkdownReport(array $rows, array $summary, array $tools, string 
             . escapeMarkdownCell(formatStringWithSwatch($row['bugo/iris'])) . ' | '
             . escapeMarkdownCell(formatStringWithSwatch($row['colorjs.io'])) . ' | '
             . escapeMarkdownCell(formatStringWithSwatch($row['colour-science'])) . ' | '
+            . escapeMarkdownCell(formatStringWithSwatch($row['Dart Sass'])) . ' | '
             . $row['Match'] . ' |';
     }
 
@@ -1391,6 +1568,16 @@ function renderMarkdownReport(array $rows, array $summary, array $tools, string 
     $lines[] = '*Report generated by `comparisons.php`*';
 
     return implode(PHP_EOL, $lines) . PHP_EOL;
+}
+
+function summaryLabel(string $matchKey): string
+{
+    return match ($matchKey) {
+        'all'   => 'Matched all available tools',
+        'none'  => 'Matched no available tool',
+        'n/a'   => 'Unavailable (no tool to compare against)',
+        default => 'Matched only ' . str_replace('+', ', ', $matchKey),
+    };
 }
 
 function escapeMarkdownCell(string $value): string
