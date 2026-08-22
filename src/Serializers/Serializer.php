@@ -607,8 +607,8 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight
     ): RgbColor {
-        $oklab1 = $this->colorSpaceConverter->normalizedRgbToOklch($color1, false);
-        $oklab2 = $this->colorSpaceConverter->normalizedRgbToOklch($color2, false);
+        $oklab1 = $this->colorSpaceConverter->normalizedChannelsToOklch($color1);
+        $oklab2 = $this->colorSpaceConverter->normalizedChannelsToOklch($color2);
 
         $oklabColor1 = new OklabColor(
             l: $oklab1->l,
@@ -626,12 +626,12 @@ final readonly class Serializer
 
         $mixed = $resolver->mixOklab($oklabColor1, $oklabColor2, $weight);
 
-        $rgb = $this->colorSpaceConverter->oklabToSrgb($mixed->l ?? 0.0, $mixed->a ?? 0.0, $mixed->b ?? 0.0);
+        $rgb = $this->colorSpaceConverter->oklabChannelsToRgb($mixed->l ?? 0.0, $mixed->a ?? 0.0, $mixed->b ?? 0.0, 1.0);
 
         return new RgbColor(
-            r: $rgb[0],
-            g: $rgb[1],
-            b: $rgb[2],
+            r: $rgb->rValue(),
+            g: $rgb->gValue(),
+            b: $rgb->bValue(),
             a: $mixed->alpha
         );
     }
@@ -642,15 +642,15 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight
     ): RgbColor {
-        $oklch1 = $this->colorSpaceConverter->normalizedRgbToOklch($color1, false);
-        $oklch2 = $this->colorSpaceConverter->normalizedRgbToOklch($color2, false);
+        $oklch1 = $this->colorSpaceConverter->normalizedChannelsToOklch($color1);
+        $oklch2 = $this->colorSpaceConverter->normalizedChannelsToOklch($color2);
 
         $oklchColor1 = new OklchColor(l: $oklch1->l, c: $oklch1->c, h: $oklch1->h, a: $color1->a);
         $oklchColor2 = new OklchColor(l: $oklch2->l, c: $oklch2->c, h: $oklch2->h, a: $color2->a);
 
         $mixed = $resolver->mixOklch($oklchColor1, $oklchColor2, $weight);
 
-        $rgb = $this->colorSpaceConverter->oklchToSrgbUnclamped($mixed);
+        $rgb = $this->colorSpaceConverter->oklchToRgb($mixed);
 
         return new RgbColor(r: $rgb->r, g: $rgb->g, b: $rgb->b, a: $mixed->a);
     }
@@ -732,7 +732,7 @@ final readonly class Serializer
     {
         $xyz = $this->colorSpaceConverter->rgbToXyzD50($rgb);
 
-        [$l, $a, $b] = $this->colorSpaceConverter->xyzToLabD50($xyz);
+        [$l, $a, $b] = $this->colorSpaceConverter->xyzD50ToLabChannels($xyz);
 
         return new LabColor(l: $l, a: $a, b: $b, alpha: $rgb->a);
     }
@@ -1047,12 +1047,12 @@ final readonly class Serializer
 
     private function labToRgb(float $l, float $a, float $b, float $alpha): RgbColor
     {
-        [$r, $g, $b] = $this->colorSpaceConverter->labToSrgb($l, $a, $b);
+        $rgb = $this->colorSpaceConverter->labChannelsToRgb($l, $a, $b, 1.0);
 
         return new RgbColor(
-            r: $this->colorSpaceConverter->clamp($r, 1.0),
-            g: $this->colorSpaceConverter->clamp($g, 1.0),
-            b: $this->colorSpaceConverter->clamp($b, 1.0),
+            r: $this->colorSpaceConverter->clamp($rgb->rValue(), 1.0),
+            g: $this->colorSpaceConverter->clamp($rgb->gValue(), 1.0),
+            b: $this->colorSpaceConverter->clamp($rgb->bValue(), 1.0),
             a: $alpha
         );
     }
@@ -1069,12 +1069,12 @@ final readonly class Serializer
 
     private function oklabToRgb(float $l, float $a, float $b, float $alpha): RgbColor
     {
-        $rgb = $this->colorSpaceConverter->oklabToSrgb($l, $a, $b);
+        $rgb = $this->colorSpaceConverter->oklabChannelsToRgb($l, $a, $b, 1.0);
 
         return new RgbColor(
-            r: $this->colorSpaceConverter->clamp($rgb[0], 1.0),
-            g: $this->colorSpaceConverter->clamp($rgb[1], 1.0),
-            b: $this->colorSpaceConverter->clamp($rgb[2], 1.0),
+            r: $this->colorSpaceConverter->clamp($rgb->rValue(), 1.0),
+            g: $this->colorSpaceConverter->clamp($rgb->gValue(), 1.0),
+            b: $this->colorSpaceConverter->clamp($rgb->bValue(), 1.0),
             a: $alpha
         );
     }

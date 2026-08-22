@@ -326,6 +326,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $x, y: $y, z: $z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToLinSrgb(XyzColor $xyz): array
     {
         return $this->multiply(self::M_XYZ_TO_LIN_SRGB, [$xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0]);
@@ -336,6 +339,9 @@ final readonly class SpaceConverter
         return $this->linSrgbToXyzD65($this->linSrgb($r), $this->linSrgb($g), $this->linSrgb($b));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToSrgbChannels(XyzColor $xyz): array
     {
         [$r, $g, $b] = $this->xyzD65ToLinSrgb($xyz);
@@ -391,6 +397,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $x, y: $y, z: $z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToLinP3(XyzColor $xyz): array
     {
         return $this->multiply(self::M_XYZ_TO_LIN_P3, [$xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0]);
@@ -401,6 +410,9 @@ final readonly class SpaceConverter
         return $this->linP3ToXyzD65($this->linP3($r), $this->linP3($g), $this->linP3($b));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToP3Channels(XyzColor $xyz): array
     {
         [$r, $g, $b] = $this->xyzD65ToLinP3($xyz);
@@ -408,6 +420,9 @@ final readonly class SpaceConverter
         return [$this->gamP3($r), $this->gamP3($g), $this->gamP3($b)];
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToP3Channels(RgbColor $rgb): array
     {
         return $this->xyzD65ToP3Channels($this->rgbToXyzD65($rgb));
@@ -425,6 +440,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $x, y: $y, z: $z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToLinA98(XyzColor $xyz): array
     {
         return $this->multiply(self::M_XYZ_TO_LIN_A98, [$xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0]);
@@ -435,6 +453,9 @@ final readonly class SpaceConverter
         return $this->linA98ToXyzD65($this->linA98($r), $this->linA98($g), $this->linA98($b));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToA98Channels(XyzColor $xyz): array
     {
         [$r, $g, $b] = $this->xyzD65ToLinA98($xyz);
@@ -442,6 +463,9 @@ final readonly class SpaceConverter
         return [$this->gamA98($r), $this->gamA98($g), $this->gamA98($b)];
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToA98Channels(RgbColor $rgb): array
     {
         return $this->xyzD65ToA98Channels($this->rgbToXyzD65($rgb));
@@ -459,6 +483,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $x, y: $y, z: $z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD50ToLinProphoto(XyzColor $xyz): array
     {
         return $this->multiply(self::M_XYZ_D50_TO_LIN_PROPHOTO, [$xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0]);
@@ -469,6 +496,9 @@ final readonly class SpaceConverter
         return $this->linProphotoToXyzD50($this->linProphoto($r), $this->linProphoto($g), $this->linProphoto($b));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD50ToProphotoChannels(XyzColor $xyz): array
     {
         [$r, $g, $b] = $this->xyzD50ToLinProphoto($xyz);
@@ -481,6 +511,9 @@ final readonly class SpaceConverter
         return $this->xyzD50ToXyzD65($this->prophotoToXyzD50($r, $g, $b));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToProphotoChannels(RgbColor $rgb): array
     {
         return $this->xyzD50ToProphotoChannels($this->rgbToXyzD50($rgb));
@@ -498,6 +531,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $x, y: $y, z: $z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToLinRec2020(XyzColor $xyz): array
     {
         return $this->multiply(self::M_XYZ_TO_LIN_REC2020, [$xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0]);
@@ -508,6 +544,9 @@ final readonly class SpaceConverter
         return $this->linRec2020ToXyzD65($this->linRec2020($r), $this->linRec2020($g), $this->linRec2020($b));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToRec2020Channels(XyzColor $xyz): array
     {
         [$r, $g, $b] = $this->xyzD65ToLinRec2020($xyz);
@@ -515,6 +554,9 @@ final readonly class SpaceConverter
         return [$this->gamRec2020($r), $this->gamRec2020($g), $this->gamRec2020($b)];
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToRec2020Channels(RgbColor $rgb): array
     {
         return $this->xyzD65ToRec2020Channels($this->rgbToXyzD65($rgb));
@@ -525,11 +567,17 @@ final readonly class SpaceConverter
         return $this->xyzD65ToRgb($this->rec2020ToXyzD65($r, $g, $b), $opacity);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function d65ToD50(float $x, float $y, float $z): array
     {
         return $this->multiply(self::M_D65_TO_D50, [$x, $y, $z]);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function d50ToD65(float $x, float $y, float $z): array
     {
         return $this->multiply(self::M_D50_TO_D65, [$x, $y, $z]);
@@ -571,6 +619,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $xr * self::D50_WHITE_X, y: $yr, z: $zr * self::D50_WHITE_Z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD50ToLabChannels(XyzColor $xyz): array
     {
         $x = ($xyz->x ?? 0.0) / self::D50_WHITE_X;
@@ -595,6 +646,9 @@ final readonly class SpaceConverter
         return new LabColor(l: $l, a: $a, b: $b, alpha: $alpha);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD50ToLchChannels(XyzColor $xyz): array
     {
         [$l, $a, $b] = $this->xyzD50ToLabChannels($xyz);
@@ -683,6 +737,9 @@ final readonly class SpaceConverter
         return new XyzColor(x: $x, y: $y, z: $z);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToOklabChannels(XyzColor $xyz): array
     {
         [$lLms, $mLms, $sLms] = $this->multiply(self::M_XYZ_TO_LMS, [
@@ -699,6 +756,9 @@ final readonly class SpaceConverter
         return new OklabColor(l: $l * 100.0, a: $a, b: $b, alpha: $alpha);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToOklchChannels(XyzColor $xyz): array
     {
         [$l, $a, $b] = $this->xyzD65ToOklabChannels($xyz);
@@ -741,6 +801,9 @@ final readonly class SpaceConverter
         return $this->oklabChannelsToRgb($l, $a, $b, $opacity);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToOklabChannels(RgbColor $rgb): array
     {
         $r = $this->linSrgb(($rgb->r ?? 0.0) / 255.0);
@@ -904,9 +967,7 @@ final readonly class SpaceConverter
      */
     public function oklabToSrgb(float $l, float $a, float $b): array
     {
-        $rgb = $this->oklabChannelsToRgb($l, $a, $b, 1.0);
-
-        return [$rgb->r, $rgb->g, $rgb->b];
+        return $this->oklabChannelsToRgbComponents($l, $a, $b);
     }
 
     /**
@@ -915,7 +976,7 @@ final readonly class SpaceConverter
      */
     public function oklabToSrgbUnclamped(float $l, float $a, float $b): array
     {
-        return $this->oklabToSrgb($l, $a, $b);
+        return $this->oklabChannelsToRgbComponents($l, $a, $b);
     }
 
     /**
@@ -926,7 +987,7 @@ final readonly class SpaceConverter
     {
         $rgb = $this->labChannelsToRgb($l, $a, $b, 1.0);
 
-        return [$rgb->r, $rgb->g, $rgb->b];
+        return [$rgb->rValue(), $rgb->gValue(), $rgb->bValue()];
     }
 
     /** @deprecated Use labToRgb(). */
@@ -1031,55 +1092,82 @@ final readonly class SpaceConverter
         return $this->rec2020ChannelsToRgb($r, $g, $b, $opacity);
     }
 
-    /** @deprecated Use xyzD65ToLinP3(). */
+    /**
+     * @deprecated Use xyzD65ToLinP3().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToLinearDisplayP3(XyzColor $xyz): array
     {
         return $this->xyzD65ToLinP3($xyz);
     }
 
-    /** @deprecated Use rgbToP3Channels(). */
+    /**
+     * @deprecated Use rgbToP3Channels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToDisplayP3(RgbColor $rgb): array
     {
         return $this->rgbToP3Channels($rgb);
     }
 
-    /** @deprecated Use xyzD65ToP3Channels(). */
+    /**
+     * @deprecated Use xyzD65ToP3Channels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToDisplayP3(XyzColor $xyz): array
     {
         return $this->xyzD65ToP3Channels($xyz);
     }
 
-    /** @deprecated Use rgbToA98Channels(). */
+    /**
+     * @deprecated Use rgbToA98Channels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToA98Rgb(RgbColor $rgb): array
     {
         return $this->rgbToA98Channels($rgb);
     }
 
-    /** @deprecated Use xyzD65ToA98Channels(). */
+    /**
+     * @deprecated Use xyzD65ToA98Channels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToA98Rgb(XyzColor $xyz): array
     {
         return $this->xyzD65ToA98Channels($xyz);
     }
 
-    /** @deprecated Use rgbToProphotoChannels(). */
+    /**
+     * @deprecated Use rgbToProphotoChannels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToProphotoRgb(RgbColor $rgb): array
     {
         return $this->rgbToProphotoChannels($rgb);
     }
 
-    /** @deprecated Use xyzD50ToProphotoChannels(). */
+    /**
+     * @deprecated Use xyzD50ToProphotoChannels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD50ToProphotoRgb(XyzColor $xyz): array
     {
         return $this->xyzD50ToProphotoChannels($xyz);
     }
 
-    /** @deprecated Use rgbToRec2020Channels(). */
+    /**
+     * @deprecated Use rgbToRec2020Channels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function rgbToRec2020(RgbColor $rgb): array
     {
         return $this->rgbToRec2020Channels($rgb);
     }
 
-    /** @deprecated Use xyzD65ToRec2020Channels(). */
+    /**
+     * @deprecated Use xyzD65ToRec2020Channels().
+     * @return array{0: float, 1: float, 2: float}
+     */
     public function xyzD65ToRec2020(XyzColor $xyz): array
     {
         return $this->xyzD65ToRec2020Channels($xyz);
@@ -1200,24 +1288,31 @@ final readonly class SpaceConverter
     }
 
     /**
-     * @deprecated The $clampChannels parameter no longer affects the result (both branches
-     * were already identical in the original class). Use rgbToOklch() instead - same
-     * arithmetic, but with explicit 0..255 -> 0..1 normalization inside the method.
+     * Converts an RgbColor whose channels are already in the 0..1 range
+     * (no /255 normalization is applied, unlike rgbToOklch()).
      */
-    public function normalizedSrgbToOklch(RgbColor $rgb, bool $clampChannels = false): OklchColor
-    {
-        return $this->normalizedRgbToOklch($rgb, $clampChannels);
-    }
-
-    /**
-     * @deprecated See normalizedSrgbToOklch(). Note: just like in the original class, this
-     * method expects ALREADY normalized 0..1 channels, not 0..255 (unlike rgbToOklch()).
-     */
-    public function normalizedRgbToOklch(RgbColor $rgb, bool $clampChannels): OklchColor
+    public function normalizedChannelsToOklch(RgbColor $rgb): OklchColor
     {
         [$l, $a, $b] = $this->normalizedRgbToOklabChannels($rgb);
 
         return $this->oklabComponentsToOklch($l, $a, $b, $rgb->a);
+    }
+
+    /**
+     * @deprecated Use normalizedChannelsToOklch(). The $clampChannels parameter no longer
+     * affects the result (both branches were already identical in the original class).
+     */
+    public function normalizedSrgbToOklch(RgbColor $rgb, bool $clampChannels = false): OklchColor
+    {
+        return $this->normalizedChannelsToOklch($rgb);
+    }
+
+    /**
+     * @deprecated Use normalizedChannelsToOklch().
+     */
+    public function normalizedRgbToOklch(RgbColor $rgb, bool $clampChannels): OklchColor
+    {
+        return $this->normalizedChannelsToOklch($rgb);
     }
 
     /**
@@ -1259,6 +1354,9 @@ final readonly class SpaceConverter
         return $p;
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     private function linSrgbToOklabChannels(float $r, float $g, float $b): array
     {
         [$lLms, $mLms, $sLms] = $this->multiply(self::M_LIN_SRGB_TO_LMS, [$r, $g, $b]);
@@ -1266,6 +1364,9 @@ final readonly class SpaceConverter
         return $this->lmsToOklab($this->cubeRoot($lLms), $this->cubeRoot($mLms), $this->cubeRoot($sLms));
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     private function normalizedRgbToOklabChannels(RgbColor $rgb): array
     {
         $r = $this->linSrgb($rgb->r ?? 0.0);
@@ -1275,6 +1376,9 @@ final readonly class SpaceConverter
         return $this->linSrgbToOklabChannels($r, $g, $b);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     private function oklabToLinSrgbChannels(float $l, float $a, float $b): array
     {
         [$lPrime, $mPrime, $sPrime] = $this->multiply(self::M_OKLAB_TO_LMS, [$l, $a, $b]);
@@ -1286,6 +1390,19 @@ final readonly class SpaceConverter
         ]);
     }
 
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
+    private function oklabChannelsToRgbComponents(float $l, float $a, float $b): array
+    {
+        $rgb = $this->oklabChannelsToRgb($l, $a, $b, 1.0);
+
+        return [$rgb->rValue(), $rgb->gValue(), $rgb->bValue()];
+    }
+
+    /**
+     * @return array{0: float, 1: float, 2: float}
+     */
     private function lmsToOklab(float $l, float $m, float $s): array
     {
         return $this->multiply(self::M_LMS_TO_OKLAB, [$l, $m, $s]);

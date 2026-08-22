@@ -1230,4 +1230,147 @@ describe('SpaceConverter', function (): void {
                 ->and($rgb->b)->toBeLessThan(0.0);
         });
     });
+
+    describe('srgbChannelsToXyzD65', function (): void {
+        it('converts pure red channels to XYZ D65', function (): void {
+            $xyz = $this->converter->srgbChannelsToXyzD65(1.0, 0.0, 0.0);
+
+            expect($xyz)->toBeInstanceOf(XyzColor::class)
+                ->and($xyz->x)->toBeCloseTo(0.4124, 3)
+                ->and($xyz->y)->toBeCloseTo(0.2126, 3)
+                ->and($xyz->z)->toBeCloseTo(0.0193, 3);
+        });
+    });
+
+    describe('linearSrgbChannelsToSrgba', function (): void {
+        it('applies gamma encoding to linear channels and preserves alpha', function (): void {
+            $rgb = $this->converter->linearSrgbChannelsToSrgba(0.5, 0.5, 0.5, 0.9);
+
+            expect($rgb->r)->toBeCloseTo(0.7354, 4)
+                ->and($rgb->g)->toBeCloseTo(0.7354, 4)
+                ->and($rgb->b)->toBeCloseTo(0.7354, 4)
+                ->and($rgb->a)->toBeCloseTo(0.9, 5);
+        });
+
+        it('keeps zero and one channels unchanged', function (): void {
+            $rgb = $this->converter->linearSrgbChannelsToSrgba(0.0, 1.0, 0.0, 1.0);
+
+            expect($rgb->r)->toBe(0.0)
+                ->and($rgb->g)->toBeCloseTo(1.0, 6)
+                ->and($rgb->b)->toBe(0.0)
+                ->and($rgb->a)->toBe(1.0);
+        });
+    });
+
+    describe('displayP3ChannelsToSrgba', function (): void {
+        it('converts display-p3 white to sRGB white with custom opacity', function (): void {
+            $rgb = $this->converter->displayP3ChannelsToSrgba(1.0, 1.0, 1.0, 0.75);
+
+            expect($rgb->r)->toBeCloseTo(1.0, 2)
+                ->and($rgb->g)->toBeCloseTo(1.0, 2)
+                ->and($rgb->b)->toBeCloseTo(1.0, 2)
+                ->and($rgb->a)->toBe(0.75);
+        });
+    });
+
+    describe('linearDisplayP3ChannelsToSrgba', function (): void {
+        it('converts linear display-p3 white to sRGB white with custom opacity', function (): void {
+            $rgb = $this->converter->linearDisplayP3ChannelsToSrgba(1.0, 1.0, 1.0, 0.4);
+
+            expect($rgb->r)->toBeCloseTo(1.0, 2)
+                ->and($rgb->g)->toBeCloseTo(1.0, 2)
+                ->and($rgb->b)->toBeCloseTo(1.0, 2)
+                ->and($rgb->a)->toBe(0.4);
+        });
+    });
+
+    describe('displayP3ChannelsToXyzD65', function (): void {
+        it('converts display-p3 white to XYZ D65 white point', function (): void {
+            $xyz = $this->converter->displayP3ChannelsToXyzD65(1.0, 1.0, 1.0);
+
+            expect($xyz)->toBeInstanceOf(XyzColor::class)
+                ->and($xyz->x)->toBeCloseTo(0.9505, 3)
+                ->and($xyz->y)->toBeCloseTo(1.0, 3)
+                ->and($xyz->z)->toBeCloseTo(1.089, 3);
+        });
+    });
+
+    describe('xyzD50ToSrgba', function (): void {
+        it('converts the D50 white point to sRGB white', function (): void {
+            $xyz = new XyzColor(0.9642956764295677, 1.0, 0.8251046025104602);
+            $rgb = $this->converter->xyzD50ToSrgba($xyz, 1.0);
+
+            expect($rgb->r)->toBeCloseTo(1.0, 2)
+                ->and($rgb->g)->toBeCloseTo(1.0, 2)
+                ->and($rgb->b)->toBeCloseTo(1.0, 2)
+                ->and($rgb->a)->toBe(1.0);
+        });
+    });
+
+    describe('a98RgbChannelsToSrgba', function (): void {
+        it('converts a98-rgb white to sRGB white with custom opacity', function (): void {
+            $rgb = $this->converter->a98RgbChannelsToSrgba(1.0, 1.0, 1.0, 0.85);
+
+            expect($rgb->r)->toBeCloseTo(1.0, 2)
+                ->and($rgb->g)->toBeCloseTo(1.0, 2)
+                ->and($rgb->b)->toBeCloseTo(1.0, 2)
+                ->and($rgb->a)->toBe(0.85);
+        });
+    });
+
+    describe('prophotoRgbChannelsToSrgba', function (): void {
+        it('converts prophoto-rgb white to sRGB white with custom opacity', function (): void {
+            $rgb = $this->converter->prophotoRgbChannelsToSrgba(1.0, 1.0, 1.0, 0.6);
+
+            expect($rgb->r)->toBeCloseTo(1.0, 2)
+                ->and($rgb->g)->toBeCloseTo(1.0, 2)
+                ->and($rgb->b)->toBeCloseTo(1.0, 2)
+                ->and($rgb->a)->toBe(0.6);
+        });
+    });
+
+    describe('rec2020ChannelsToSrgba', function (): void {
+        it('converts rec2020 white to sRGB white with custom opacity', function (): void {
+            $rgb = $this->converter->rec2020ChannelsToSrgba(1.0, 1.0, 1.0, 0.55);
+
+            expect($rgb->r)->toBeCloseTo(1.0, 2)
+                ->and($rgb->g)->toBeCloseTo(1.0, 2)
+                ->and($rgb->b)->toBeCloseTo(1.0, 2)
+                ->and($rgb->a)->toBe(0.55);
+        });
+    });
+
+    describe('labChannelsToSrgba', function (): void {
+        it('converts lab(50, 20, -30) to sRGB with opacity', function (): void {
+            $rgb = $this->converter->labChannelsToSrgba(50.0, 20.0, -30.0, 0.95);
+
+            expect($rgb->r)->toBeCloseTo(0.52115, 4)
+                ->and($rgb->g)->toBeCloseTo(0.42366, 4)
+                ->and($rgb->b)->toBeCloseTo(0.66851, 4)
+                ->and($rgb->a)->toBe(0.95);
+        });
+    });
+
+    describe('normalizedRgbToOklch', function (): void {
+        it('treats rgb channels as already normalized 0..1 values', function (): void {
+            $oklch = $this->converter->normalizedRgbToOklch(new RgbColor(1.0, 0.0, 0.0, 0.5), false);
+
+            expect($oklch)->toBeInstanceOf(OklchColor::class)
+                ->and($oklch->l)->toBeGreaterThan(62.0)
+                ->and($oklch->l)->toBeLessThan(64.0)
+                ->and($oklch->c)->toBeGreaterThan(0.25)
+                ->and($oklch->c)->toBeLessThan(0.27)
+                ->and($oklch->h)->toBeGreaterThan(28.0)
+                ->and($oklch->h)->toBeLessThan(31.0)
+                ->and($oklch->a)->toBe(0.5);
+        });
+
+        it('produces zero lightness for black regardless of clamp flag', function (): void {
+            $clamped   = $this->converter->normalizedRgbToOklch(new RgbColor(0.0, 0.0, 0.0), true);
+            $unclamped = $this->converter->normalizedRgbToOklch(new RgbColor(0.0, 0.0, 0.0), false);
+
+            expect(round($clamped->l, 4))->toBe(0.0)
+                ->and(round($unclamped->l, 4))->toBe(0.0);
+        });
+    });
 });

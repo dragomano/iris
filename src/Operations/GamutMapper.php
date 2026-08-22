@@ -14,9 +14,9 @@ final readonly class GamutMapper
 
     public function clip(OklchColor $oklch): OklchColor
     {
-        $rgb = $this->converter->oklchToSrgbUnclamped($oklch);
+        $rgb = $this->converter->oklchToRgb($oklch);
 
-        return $this->converter->normalizedSrgbToOklch(new RgbColor(
+        return $this->converter->normalizedChannelsToOklch(new RgbColor(
             r: $this->converter->clamp($rgb->r ?? 0.0, 1.0),
             g: $this->converter->clamp($rgb->g ?? 0.0, 1.0),
             b: $this->converter->clamp($rgb->b ?? 0.0, 1.0),
@@ -29,11 +29,11 @@ final readonly class GamutMapper
         $minChroma = 0.0;
         $maxChroma = $oklch->c ?? 0.0;
 
-        $current = $this->converter->oklchToSrgbUnclamped($oklch);
+        $current = $this->converter->oklchToRgb($oklch);
         $clipped = $this->clipRgb($current);
 
         if ($this->converter->calculateDeltaE($current, $clipped) < 0.02) {
-            return $this->converter->normalizedSrgbToOklch($clipped);
+            return $this->converter->normalizedChannelsToOklch($clipped);
         }
 
         $bestClipped = null;
@@ -47,7 +47,7 @@ final readonly class GamutMapper
                 a: $oklch->a
             );
 
-            $current = $this->converter->oklchToSrgbUnclamped($testColor);
+            $current = $this->converter->oklchToRgb($testColor);
             $clipped = $this->clipRgb($current);
 
             $isInGamut = $current->r >= 0.0 && $current->r <= 1.0
@@ -66,7 +66,7 @@ final readonly class GamutMapper
             $maxChroma = $testChroma;
         }
 
-        return $this->converter->normalizedSrgbToOklch($bestClipped ?? $clipped);
+        return $this->converter->normalizedChannelsToOklch($bestClipped ?? $clipped);
     }
 
     private function clipRgb(RgbColor $rgb): RgbColor
