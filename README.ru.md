@@ -37,7 +37,7 @@ Iris поддерживает устаревшие CSS-пространства 
 В Iris нет одной универсальной шкалы каналов для всех API.
 
 - Объектный API: методы, принимающие `RgbColor`, `HslColor`, `LabColor`, `OklchColor` и другие объекты пространств, используют собственную шкалу соответствующего объекта. Например, `RgbColor` хранит байтовые каналы (`0-255`), `HslColor` и `HwbColor` используют каналы `0-100`, `OklchColor` хранит светлоту по шкале `0-100`, а `OklabColor` использует нормализованную светлоту `0-1`.
-- Канальный API: методы, в имени которых есть `Channels`, например `srgbChannelsToXyzD65()`, `oklchChannelsToSrgba()` или `labChannelsToXyzD65()`, образуют нормализованный низкоуровневый API. Они принимают каналы, удобные для математических преобразований, и обычно возвращают нормализованные `float`-значения или типизированные объекты, собранные из таких каналов.
+- Канальный API: методы, в имени которых есть `Channels`, например `rgbToRec2020Channels()`, `oklchChannelsToRgb()` или `xyzD65ToOklabChannels()`, образуют нормализованный низкоуровневый API. Они принимают каналы, удобные для математических преобразований, и обычно возвращают нормализованные `float`-значения или типизированные объекты, собранные из таких каналов.
 - `SpaceRouter`: выполняет маршрутизацию по строковому имени пространства поверх канального API. Он лучше всего подходит для сценариев с CSS `color(<space> ...)`, где пространства вроде `srgb`, `display-p3`, `rec2020` и `xyz-*` передаются как нормализованные тройки каналов. `lab`, `lch`, `oklab` и `oklch` тоже поддерживаются для симметрии, но если целевое пространство известно заранее, типизированные методы `SpaceConverter` обычно понятнее.
 
 ## Когда использовать что
@@ -84,8 +84,8 @@ echo $xyz->x;
 // Каналы HSL -> каналы RGB (возвращает [r, g, b] как нормализованные float)
 [$r, $g, $b] = $converter->hslToRgb(30.0, 1.0, 0.5);
 
-// Нормализованный channel API -> XYZ D65
-$xyzFromChannels = $converter->srgbChannelsToXyzD65(1.0, 0.5, 0.0);
+// Каналы sRGB -> XYZ D65 объект
+$xyzFromChannels = $converter->srgbToXyzD65(1.0, 0.5, 0.0);
 ```
 
 Методы вида `*Channels*` образуют нормализованный канальный API. Методы, принимающие объекты вроде `RgbColor` или `OklchColor`, остаются объектными точками входа.
@@ -306,14 +306,14 @@ use Bugo\Iris\Spaces\XyzColor;
 $converter = new SpaceConverter();
 $rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
 
-[$p3R, $p3G, $p3B] = $converter->rgbToDisplayP3($rgb);
+[$p3R, $p3G, $p3B] = $converter->rgbToP3Channels($rgb);
 
-$a98      = $converter->rgbToA98Rgb($rgb);
-$prophoto = $converter->rgbToProphotoRgb($rgb);
-$rec2020  = $converter->rgbToRec2020($rgb);
+$a98      = $converter->rgbToA98Channels($rgb);
+$prophoto = $converter->rgbToProphotoChannels($rgb);
+$rec2020  = $converter->rgbToRec2020Channels($rgb);
 
 $xyz       = new XyzColor(x: 0.5, y: 0.4, z: 0.2);
-$p3FromXyz = $converter->xyzD65ToDisplayP3($xyz);
+$p3FromXyz = $converter->xyzD65ToP3Channels($xyz);
 ```
 
 ### Утилиты полярной математики

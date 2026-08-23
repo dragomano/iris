@@ -37,7 +37,7 @@ Iris supports the legacy CSS spaces and the modern color spaces used by `lab()`,
 Iris does not use one universal channel scale across every API surface.
 
 - Object API: methods that accept `RgbColor`, `HslColor`, `LabColor`, `OklchColor`, and other space objects follow each object's native scale. For example, `RgbColor` stores byte-like channels (`0-255`), `HslColor` and `HwbColor` use percentage-like `0-100` channels, `OklchColor` stores lightness on a `0-100` scale, and `OklabColor` keeps lightness normalized to `0-1`.
-- Channel API: methods whose names contain `Channels`, such as `srgbChannelsToXyzD65()`, `oklchChannelsToSrgba()`, or `labChannelsToXyzD65()`, form the normalized low-level API. These methods accept math-oriented channel values and usually return normalized floats or typed objects built from those normalized channels.
+- Channel API: methods whose names contain `Channels`, such as `rgbToRec2020Channels()`, `oklchChannelsToRgb()`, or `xyzD65ToOklabChannels()`, form the normalized low-level API. These methods accept math-oriented channel values and usually return normalized floats or typed objects built from those normalized channels.
 - `SpaceRouter`: routes by string space name on top of the channel API. It is best suited for CSS `color(<space> ...)` flows, where spaces such as `srgb`, `display-p3`, `rec2020`, and `xyz-*` are passed around as normalized channel triples. `lab`, `lch`, `oklab`, and `oklch` are also accepted for symmetry, but the typed `SpaceConverter` methods are usually clearer when you already know the target space at compile time.
 
 ## When to use what
@@ -84,8 +84,8 @@ echo $xyz->x;
 // HSL channels -> RGB channels (returns [r, g, b] as normalized floats)
 [$r, $g, $b] = $converter->hslToRgb(30.0, 1.0, 0.5);
 
-// Normalized channel API -> XYZ D65
-$xyzFromChannels = $converter->srgbChannelsToXyzD65(1.0, 0.5, 0.0);
+// sRGB channels -> XYZ D65 object
+$xyzFromChannels = $converter->srgbToXyzD65(1.0, 0.5, 0.0);
 ```
 
 The `*Channels*` methods are the normalized channel API. Methods that accept color objects such as `RgbColor` or `OklchColor` remain object-oriented entry points.
@@ -306,14 +306,14 @@ use Bugo\Iris\Spaces\XyzColor;
 $converter = new SpaceConverter();
 $rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
 
-[$p3R, $p3G, $p3B] = $converter->rgbToDisplayP3($rgb);
+[$p3R, $p3G, $p3B] = $converter->rgbToP3Channels($rgb);
 
-$a98      = $converter->rgbToA98Rgb($rgb);
-$prophoto = $converter->rgbToProphotoRgb($rgb);
-$rec2020  = $converter->rgbToRec2020($rgb);
+$a98      = $converter->rgbToA98Channels($rgb);
+$prophoto = $converter->rgbToProphotoChannels($rgb);
+$rec2020  = $converter->rgbToRec2020Channels($rgb);
 
 $xyz       = new XyzColor(x: 0.5, y: 0.4, z: 0.2);
-$p3FromXyz = $converter->xyzD65ToDisplayP3($xyz);
+$p3FromXyz = $converter->xyzD65ToP3Channels($xyz);
 ```
 
 ### Polar math utilities

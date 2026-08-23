@@ -474,7 +474,7 @@ function convertParsedInputToXyzD65(array $parsed, SpaceConverter $converter, Sp
 
 function convertRgbToXyz(array $rgbChannels, SpaceConverter $converter): XyzColor
 {
-    return $converter->srgbChannelsToXyzD65($rgbChannels[0], $rgbChannels[1], $rgbChannels[2]);
+    return $converter->srgbToXyzD65($rgbChannels[0], $rgbChannels[1], $rgbChannels[2]);
 }
 
 function convertXyzToTargetSpace(XyzColor $xyz, float $alpha, string $targetSpace, SpaceConverter $converter): ?array
@@ -482,25 +482,25 @@ function convertXyzToTargetSpace(XyzColor $xyz, float $alpha, string $targetSpac
     return match ($targetSpace) {
         'srgb' => [
             'type'   => 'srgb',
-            'values' => rgbColorToArray($converter->xyzD65ToSrgba($xyz, $alpha)),
+            'values' => rgbColorToArray($converter->xyzD65ToRgb($xyz, $alpha)),
         ],
         'srgb-linear' => convertXyzToSrgbLinear($xyz, $alpha, $converter),
         'display-p3'  => [
             'type'   => 'display-p3',
-            'values' => [...$converter->xyzD65ToDisplayP3($xyz), $alpha],
+            'values' => [...$converter->xyzD65ToP3Channels($xyz), $alpha],
         ],
         'display-p3-linear' => [
             'type'   => 'display-p3-linear',
-            'values' => [...$converter->xyzD65ToLinearDisplayP3($xyz), $alpha],
+            'values' => [...$converter->xyzD65ToLinP3($xyz), $alpha],
         ],
         'a98-rgb' => [
             'type'   => 'a98-rgb',
-            'values' => [...$converter->xyzD65ToA98Rgb($xyz), $alpha],
+            'values' => [...$converter->xyzD65ToA98Channels($xyz), $alpha],
         ],
         'prophoto-rgb' => convertXyzToProphoto($xyz, $alpha, $converter),
         'rec2020'      => [
             'type'   => 'rec2020',
-            'values' => [...$converter->xyzD65ToRec2020($xyz), $alpha],
+            'values' => [...$converter->xyzD65ToRec2020Channels($xyz), $alpha],
         ],
         'xyz-d65' => [
             'type'   => 'xyz-d65',
@@ -511,7 +511,7 @@ function convertXyzToTargetSpace(XyzColor $xyz, float $alpha, string $targetSpac
         'lch'     => convertXyzToLch($xyz, $alpha, $converter),
         'oklab'   => [
             'type'   => 'oklab',
-            'values' => [...$converter->xyzToOklabD65($xyz), $alpha],
+            'values' => [...$converter->xyzD65ToOklabChannels($xyz), $alpha],
         ],
         'oklch' => convertXyzToOklch($xyz, $alpha, $converter),
         'hsl'   => convertXyzToHsl($xyz, $alpha, $converter),
@@ -522,14 +522,14 @@ function convertXyzToTargetSpace(XyzColor $xyz, float $alpha, string $targetSpac
 
 function convertXyzToSrgbLinear(XyzColor $xyz, float $alpha, SpaceConverter $converter): array
 {
-    $rgb = $converter->xyzD65ToSrgba($xyz, $alpha);
+    $rgb = $converter->xyzD65ToRgb($xyz, $alpha);
 
     return [
         'type'   => 'srgb-linear',
         'values' => [
-            $converter->srgbToLinear($rgb->r),
-            $converter->srgbToLinear($rgb->g),
-            $converter->srgbToLinear($rgb->b),
+            $converter->linSrgb($rgb->r),
+            $converter->linSrgb($rgb->g),
+            $converter->linSrgb($rgb->b),
             $alpha,
         ],
     ];
@@ -541,7 +541,7 @@ function convertXyzToProphoto(XyzColor $xyz, float $alpha, SpaceConverter $conve
 
     return [
         'type'   => 'prophoto-rgb',
-        'values' => [...$converter->xyzD50ToProphotoRgb($xyzD50), $alpha],
+        'values' => [...$converter->xyzD50ToProphotoChannels($xyzD50), $alpha],
     ];
 }
 
@@ -559,7 +559,7 @@ function convertXyzToLab(XyzColor $xyz, float $alpha, SpaceConverter $converter)
 {
     $xyzD50 = $converter->xyzD65ToXyzD50($xyz);
 
-    [$l, $a, $b] = $converter->xyzToLabD50($xyzD50);
+    [$l, $a, $b] = $converter->xyzD50ToLabChannels($xyzD50);
 
     return [
         'type'   => 'lab',
@@ -571,7 +571,7 @@ function convertXyzToLch(XyzColor $xyz, float $alpha, SpaceConverter $converter)
 {
     $xyzD50 = $converter->xyzD65ToXyzD50($xyz);
 
-    [$l, $c, $h] = $converter->xyzToLchD50($xyzD50);
+    [$l, $c, $h] = $converter->xyzD50ToLchChannels($xyzD50);
 
     if ($c <= 0.000001) {
         $h = 0.0;
@@ -585,7 +585,7 @@ function convertXyzToLch(XyzColor $xyz, float $alpha, SpaceConverter $converter)
 
 function convertXyzToOklch(XyzColor $xyz, float $alpha, SpaceConverter $converter): array
 {
-    [$l, $c, $h] = $converter->xyzToOklchD65($xyz);
+    [$l, $c, $h] = $converter->xyzD65ToOklchChannels($xyz);
 
     if ($c <= 0.000001) {
         $h = 0.0;
@@ -599,7 +599,7 @@ function convertXyzToOklch(XyzColor $xyz, float $alpha, SpaceConverter $converte
 
 function convertXyzToHsl(XyzColor $xyz, float $alpha, SpaceConverter $converter): array
 {
-    $rgb = $converter->xyzD65ToSrgba($xyz, $alpha);
+    $rgb = $converter->xyzD65ToRgb($xyz, $alpha);
 
     return [
         'type'   => 'hsl',
@@ -609,7 +609,7 @@ function convertXyzToHsl(XyzColor $xyz, float $alpha, SpaceConverter $converter)
 
 function convertXyzToHwb(XyzColor $xyz, float $alpha, SpaceConverter $converter): array
 {
-    $rgb = $converter->xyzD65ToSrgba($xyz, $alpha);
+    $rgb = $converter->xyzD65ToRgb($xyz, $alpha);
 
     return [
         'type'   => 'hwb',
