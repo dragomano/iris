@@ -14,7 +14,7 @@ use function substr;
 final readonly class HexNormalizer
 {
     public function __construct(
-        private HexShortener $hexColorShortener = new HexShortener()
+        private HexShortener $hexColorShortener = new HexShortener(),
     ) {}
 
     public function normalize(string $value): ?string

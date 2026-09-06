@@ -29,7 +29,7 @@ final readonly class LiteralSerializer
                 $red,
                 $green,
                 $blue,
-                $this->toColorByte($alpha * 255.0)
+                $this->toColorByte($alpha * 255.0),
             );
         }
 
@@ -46,11 +46,7 @@ final readonly class LiteralSerializer
                     continue;
                 }
 
-                if (
-                    (int) $channels[0] === $red
-                    && (int) $channels[1] === $green
-                    && (int) $channels[2] === $blue
-                ) {
+                if ((int) $channels[0] === $red && (int) $channels[1] === $green && (int) $channels[2] === $blue) {
                     return $name;
                 }
             }

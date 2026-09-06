@@ -16,7 +16,7 @@ final class HexEncoder
             '#%s%s%s',
             $this->toHexByte($red),
             $this->toHexByte($green),
-            $this->toHexByte($blue)
+            $this->toHexByte($blue),
         );
     }
 
@@ -27,7 +27,7 @@ final class HexEncoder
             $this->toHexByte($red),
             $this->toHexByte($green),
             $this->toHexByte($blue),
-            $this->toHexByte($alpha)
+            $this->toHexByte($alpha),
         );
     }
 

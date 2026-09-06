@@ -13,7 +13,7 @@ final readonly class LegacyManipulator
 {
     public function __construct(
         private SpaceConverter $colorSpaceConverter = new SpaceConverter(),
-        private ModelConverter $colorModelConverter = new ModelConverter()
+        private ModelConverter $colorModelConverter = new ModelConverter(),
     ) {}
 
     public function grayscale(HslColor $color): HslColor
@@ -27,7 +27,7 @@ final readonly class LegacyManipulator
             r: $this->colorSpaceConverter->mixChannel($left->r ?? 0.0, $right->r ?? 0.0, $weight),
             g: $this->colorSpaceConverter->mixChannel($left->g ?? 0.0, $right->g ?? 0.0, $weight),
             b: $this->colorSpaceConverter->mixChannel($left->b ?? 0.0, $right->b ?? 0.0, $weight),
-            a: $this->colorSpaceConverter->mixChannel($left->a, $right->a, $weight)
+            a: $this->colorSpaceConverter->mixChannel($left->a, $right->a, $weight),
         );
     }
 
@@ -41,7 +41,7 @@ final readonly class LegacyManipulator
             r: $this->colorSpaceConverter->mixChannel($r, 255.0 - $r, 1.0 - $weight),
             g: $this->colorSpaceConverter->mixChannel($g, 255.0 - $g, 1.0 - $weight),
             b: $this->colorSpaceConverter->mixChannel($b, 255.0 - $b, 1.0 - $weight),
-            a: $color->a
+            a: $color->a,
         );
     }
 
@@ -62,7 +62,7 @@ final readonly class LegacyManipulator
                 h: $hsl->h,
                 s: $newSaturation,
                 l: $newLightness,
-                a: $hsl->a
+                a: $hsl->a,
             ));
 
             $newRed   = $changed->r;
@@ -74,7 +74,7 @@ final readonly class LegacyManipulator
             r: $newRed,
             g: $newGreen,
             b: $newBlue,
-            a: $newAlpha
+            a: $newAlpha,
         );
     }
 
@@ -87,7 +87,7 @@ final readonly class LegacyManipulator
             $rgb,
             $hsl,
             $adjustments,
-            static fn(float $current, float $value): float => $current + $value
+            static fn(float $current, float $value): float => $current + $value,
         );
     }
 
@@ -196,7 +196,7 @@ final readonly class LegacyManipulator
                 h: $newHue,
                 s: $newSaturation,
                 l: $newLightness,
-                a: $hsl->a
+                a: $hsl->a,
             ));
 
             $newRed   = $changed->r;
@@ -208,7 +208,7 @@ final readonly class LegacyManipulator
             r: $newRed,
             g: $newGreen,
             b: $newBlue,
-            a: $newAlpha
+            a: $newAlpha,
         );
     }
 

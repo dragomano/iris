@@ -42,7 +42,7 @@ final readonly class Serializer
         private HexNormalizer $hexColorNormalizer = new HexNormalizer(),
         private HexEncoder $hexColorEncoder = new HexEncoder(),
         private SpaceConverter $colorSpaceConverter = new SpaceConverter(),
-        private SpaceRouter $colorSpaceRouter = new SpaceRouter()
+        private SpaceRouter $colorSpaceRouter = new SpaceRouter(),
     ) {}
 
     public function serialize(string $value, bool $outputHexColors): string
@@ -90,11 +90,13 @@ final readonly class Serializer
         ];
 
         foreach ($parsers as $prefix => $parser) {
-            if (str_starts_with($value, $prefix) && str_ends_with($value, ')')) {
-                $content = substr($value, strlen($prefix), -1);
-
-                return $parser($content) ?? $black;
+            if (! str_starts_with($value, $prefix) || ! str_ends_with($value, ')')) {
+                continue;
             }
+
+            $content = substr($value, strlen($prefix), -1);
+
+            return $parser($content) ?? $black;
         }
 
         return null;
@@ -109,7 +111,7 @@ final readonly class Serializer
                 $expectsAlpha,
                 $this->parseRgbChannel(...),
                 $this->parseRgbChannel(...),
-                $this->parseRgbChannel(...)
+                $this->parseRgbChannel(...),
             );
 
             if ($parsed === null) {
@@ -173,7 +175,7 @@ final readonly class Serializer
                 $expectsAlpha,
                 $this->parseHue(...),
                 $this->parsePercent(...),
-                $this->parsePercent(...)
+                $this->parsePercent(...),
             );
 
             if ($parsed === null) {
@@ -199,7 +201,7 @@ final readonly class Serializer
         return $this->parseLabOklabFunction(
             $inner,
             fn(float $l, float $a, float $b, float $alpha): RgbColor => $this->labToRgb($l, $a, $b, $alpha),
-            'lab'
+            'lab',
         );
     }
 
@@ -208,7 +210,7 @@ final readonly class Serializer
         return $this->parseThreeChannelFunction(
             $inner,
             fn(float $l, float $c, float $h, float $alpha): RgbColor => $this->lchToRgb($l, $c, $h, $alpha),
-            fn(string $token): ?float => $this->parseNumeric($token)
+            fn(string $token): ?float => $this->parseNumeric($token),
         );
     }
 
@@ -217,7 +219,7 @@ final readonly class Serializer
         return $this->parseLabOklabFunction(
             $inner,
             fn(float $l, float $a, float $b, float $alpha): RgbColor => $this->oklabToRgb($l, $a, $b, $alpha),
-            'oklab'
+            'oklab',
         );
     }
 
@@ -227,7 +229,7 @@ final readonly class Serializer
             $inner,
             fn(float $l, float $c, float $h, float $alpha): RgbColor => $this->oklchToRgb($l, $c, $h, $alpha),
             fn(string $token): ?float => $this->parseNumeric($token),
-            true
+            true,
         );
     }
 
@@ -259,7 +261,7 @@ final readonly class Serializer
             r: $this->colorSpaceConverter->clamp($rgb->r ?? 0.0, 1.0),
             g: $this->colorSpaceConverter->clamp($rgb->g ?? 0.0, 1.0),
             b: $this->colorSpaceConverter->clamp($rgb->b ?? 0.0, 1.0),
-            a: $rgb->a
+            a: $rgb->a,
         );
     }
 
@@ -299,15 +301,14 @@ final readonly class Serializer
 
         $resolver = new ColorMixResolver();
 
-        return match($space) {
-            'srgb',
-            'srgb-linear' => $this->mixInSrgb($resolver, $color1, $color2, $weight),
-            'hsl'         => $this->mixInHsl($resolver, $color1, $color2, $weight),
-            'oklab'       => $this->mixInOklab($resolver, $color1, $color2, $weight),
-            'oklch'       => $this->mixInOklch($resolver, $color1, $color2, $weight),
-            'lab'         => $this->mixInLab($resolver, $color1, $color2, $weight),
-            'lch'         => $this->mixInLch($resolver, $color1, $color2, $weight),
-            default       => null,
+        return match ($space) {
+            'srgb', 'srgb-linear' => $this->mixInSrgb($resolver, $color1, $color2, $weight),
+            'hsl'                 => $this->mixInHsl($resolver, $color1, $color2, $weight),
+            'oklab'               => $this->mixInOklab($resolver, $color1, $color2, $weight),
+            'oklch'               => $this->mixInOklch($resolver, $color1, $color2, $weight),
+            'lab'                 => $this->mixInLab($resolver, $color1, $color2, $weight),
+            'lch'                 => $this->mixInLch($resolver, $color1, $color2, $weight),
+            default               => null,
         };
     }
 
@@ -342,7 +343,7 @@ final readonly class Serializer
         bool $expectsAlpha,
         Closure $parser1,
         Closure $parser2,
-        Closure $parser3
+        Closure $parser3,
     ): ?array {
         $parts = $this->splitCommaSeparated($inner);
 
@@ -377,11 +378,7 @@ final readonly class Serializer
      */
     private function parseModernRgbChannels(array $parts): ?array
     {
-        if (
-            ! $this->isValidRgbToken($parts[0])
-            || ! $this->isValidRgbToken($parts[1])
-            || ! $this->isValidRgbToken($parts[2])
-        ) {
+        if (! $this->isValidRgbToken($parts[0]) || ! $this->isValidRgbToken($parts[1]) || ! $this->isValidRgbToken($parts[2])) {
             return null;
         }
 
@@ -396,12 +393,12 @@ final readonly class Serializer
         ?float $hue,
         ?float $saturation,
         ?float $lightness,
-        float $alpha
+        float $alpha,
     ): RgbColor {
         [$red, $green, $blue] = $this->colorSpaceConverter->hslToRgb(
             $hue ?? 0.0,
             $saturation ?? 0.0,
-            $lightness ?? 0.0
+            $lightness ?? 0.0,
         );
 
         return new RgbColor($red, $green, $blue, $alpha);
@@ -415,7 +412,7 @@ final readonly class Serializer
         string $inner,
         Closure $toRgb,
         Closure $channelParser,
-        bool $parseHueForThird = false
+        bool $parseHueForThird = false,
     ): ?RgbColor {
         if (str_contains($inner, '/')) {
             [$parts, $alphaToken] = $this->splitSpaceSeparatedChannelsWithAlpha($inner, 3);
@@ -433,8 +430,8 @@ final readonly class Serializer
             $c1 = $channelParser($parts[0]) ?? 0.0;
             $c2 = $channelParser($parts[1]) ?? 0.0;
             $c3 = $parseHueForThird
-                ? ($this->parseHue($parts[2]) ?? 0.0)
-                : ($channelParser($parts[2]) ?? 0.0);
+                ? $this->parseHue($parts[2]) ?? 0.0
+                : $channelParser($parts[2]) ?? 0.0;
 
             return $toRgb($c1, $c2, $c3, $alpha);
         }
@@ -451,8 +448,8 @@ final readonly class Serializer
         $c1 = $channelParser($parts[0]) ?? 0.0;
         $c2 = $channelParser($parts[1]) ?? 0.0;
         $c3 = $parseHueForThird
-            ? ($this->parseHue($parts[2]) ?? 0.0)
-            : ($channelParser($parts[2]) ?? 0.0);
+            ? $this->parseHue($parts[2]) ?? 0.0
+            : $channelParser($parts[2]) ?? 0.0;
 
         return $toRgb($c1, $c2, $c3, 1.0);
     }
@@ -473,7 +470,7 @@ final readonly class Serializer
                 $channelIndex++;
 
                 return $result;
-            }
+            },
         );
     }
 
@@ -524,7 +521,7 @@ final readonly class Serializer
             $numStart++;
 
             $percentStr = substr($colorStr, $numStart, $percentPos - $numStart);
-            $percentage = (float) $percentStr / 100.0;
+            $percentage = is_numeric($percentStr) ? (float) $percentStr / 100.0 : null;
             $colorStr   = trim(substr($colorStr, 0, $numStart) . substr($colorStr, $percentPos + 1));
         }
 
@@ -549,7 +546,7 @@ final readonly class Serializer
                 r: $named[0] / 255.0,
                 g: $named[1] / 255.0,
                 b: $named[2] / 255.0,
-                a: $named[3] ?? 1.0
+                a: $named[3] ?? 1.0,
             );
         }
 
@@ -582,7 +579,7 @@ final readonly class Serializer
         ColorMixResolver $resolver,
         RgbColor $color1,
         RgbColor $color2,
-        float $weight
+        float $weight,
     ): RgbColor {
         return $resolver->mixSrgb($color1, $color2, $weight);
     }
@@ -591,7 +588,7 @@ final readonly class Serializer
         ColorMixResolver $resolver,
         RgbColor $color1,
         RgbColor $color2,
-        float $weight
+        float $weight,
     ): RgbColor {
         $hsl1 = $this->rgbToHsl($color1);
         $hsl2 = $this->rgbToHsl($color2);
@@ -605,23 +602,23 @@ final readonly class Serializer
         ColorMixResolver $resolver,
         RgbColor $color1,
         RgbColor $color2,
-        float $weight
+        float $weight,
     ): RgbColor {
         $oklab1 = $this->colorSpaceConverter->normalizedChannelsToOklch($color1);
         $oklab2 = $this->colorSpaceConverter->normalizedChannelsToOklch($color2);
 
         $oklabColor1 = new OklabColor(
             l: $oklab1->l,
-            a: ($oklab1->c ?? 0.0) * cos(($oklab1->h ?? 0.0) * M_PI / 180.0),
-            b: ($oklab1->c ?? 0.0) * sin(($oklab1->h ?? 0.0) * M_PI / 180.0),
-            alpha: $color1->a
+            a: ($oklab1->c ?? 0.0) * cos((($oklab1->h ?? 0.0) * M_PI) / 180.0),
+            b: ($oklab1->c ?? 0.0) * sin((($oklab1->h ?? 0.0) * M_PI) / 180.0),
+            alpha: $color1->a,
         );
 
         $oklabColor2 = new OklabColor(
             l: $oklab2->l,
-            a: ($oklab2->c ?? 0.0) * cos(($oklab2->h ?? 0.0) * M_PI / 180.0),
-            b: ($oklab2->c ?? 0.0) * sin(($oklab2->h ?? 0.0) * M_PI / 180.0),
-            alpha: $color2->a
+            a: ($oklab2->c ?? 0.0) * cos((($oklab2->h ?? 0.0) * M_PI) / 180.0),
+            b: ($oklab2->c ?? 0.0) * sin((($oklab2->h ?? 0.0) * M_PI) / 180.0),
+            alpha: $color2->a,
         );
 
         $mixed = $resolver->mixOklab($oklabColor1, $oklabColor2, $weight);
@@ -632,7 +629,7 @@ final readonly class Serializer
             r: $rgb->rValue(),
             g: $rgb->gValue(),
             b: $rgb->bValue(),
-            a: $mixed->alpha
+            a: $mixed->alpha,
         );
     }
 
@@ -640,7 +637,7 @@ final readonly class Serializer
         ColorMixResolver $resolver,
         RgbColor $color1,
         RgbColor $color2,
-        float $weight
+        float $weight,
     ): RgbColor {
         $oklch1 = $this->colorSpaceConverter->normalizedChannelsToOklch($color1);
         $oklch2 = $this->colorSpaceConverter->normalizedChannelsToOklch($color2);
@@ -659,7 +656,7 @@ final readonly class Serializer
         ColorMixResolver $resolver,
         RgbColor $color1,
         RgbColor $color2,
-        float $weight
+        float $weight,
     ): RgbColor {
         $lab1 = $this->rgbToLab($color1);
         $lab2 = $this->rgbToLab($color2);
@@ -673,7 +670,7 @@ final readonly class Serializer
         ColorMixResolver $resolver,
         RgbColor $color1,
         RgbColor $color2,
-        float $weight
+        float $weight,
     ): RgbColor {
         $lch1 = $this->rgbToLch($color1);
         $lch2 = $this->rgbToLch($color2);
@@ -699,7 +696,7 @@ final readonly class Serializer
             $h = 0.0;
             $s = 0.0;
         } else {
-            $s = $delta / (1.0 - abs(2.0 * $l - 1.0));
+            $s = $delta / (1.0 - abs((2.0 * $l) - 1.0));
 
             if ($max === $r) {
                 $h = 60.0 * fmod(($g - $b) / $delta, 6.0);
@@ -779,20 +776,18 @@ final readonly class Serializer
 
     private function isLegacyColorWithNone(string $value): bool
     {
-        if (
-            ! str_contains(strtolower($value), 'none')
-            || ! str_contains($value, ',')
-            || ! str_ends_with($value, ')')
-        ) {
+        if (! str_contains(strtolower($value), 'none') || ! str_contains($value, ',') || ! str_ends_with($value, ')')) {
             return false;
         }
 
         foreach (['rgb(', 'rgba(', 'hsl(', 'hsla('] as $prefix) {
-            if (str_starts_with($value, $prefix)) {
-                $inner = substr($value, strlen($prefix), -1);
-
-                return str_contains($inner, ',') && str_contains(strtolower($inner), 'none');
+            if (! str_starts_with($value, $prefix)) {
+                continue;
             }
+
+            $inner = substr($value, strlen($prefix), -1);
+
+            return str_contains($inner, ',') && str_contains(strtolower($inner), 'none');
         }
 
         return false;
@@ -825,13 +820,15 @@ final readonly class Serializer
         $length  = strlen($value);
 
         for ($i = 0; $i < $length; $i++) {
-            if ($value[$i] === '/') {
-                if ($slashAt !== null) {
-                    return [null, null];
-                }
-
-                $slashAt = $i;
+            if ($value[$i] !== '/') {
+                continue;
             }
+
+            if ($slashAt !== null) {
+                return [null, null];
+            }
+
+            $slashAt = $i;
         }
 
         if ($slashAt === null) {
@@ -1053,13 +1050,13 @@ final readonly class Serializer
             r: $this->colorSpaceConverter->clamp($rgb->rValue(), 1.0),
             g: $this->colorSpaceConverter->clamp($rgb->gValue(), 1.0),
             b: $this->colorSpaceConverter->clamp($rgb->bValue(), 1.0),
-            a: $alpha
+            a: $alpha,
         );
     }
 
     private function lchToRgb(float $l, float $c, float $h, float $alpha): RgbColor
     {
-        $hueRad = $h * M_PI / 180.0;
+        $hueRad = ($h * M_PI) / 180.0;
 
         $a = $c * cos($hueRad);
         $b = $c * sin($hueRad);
@@ -1075,13 +1072,13 @@ final readonly class Serializer
             r: $this->colorSpaceConverter->clamp($rgb->rValue(), 1.0),
             g: $this->colorSpaceConverter->clamp($rgb->gValue(), 1.0),
             b: $this->colorSpaceConverter->clamp($rgb->bValue(), 1.0),
-            a: $alpha
+            a: $alpha,
         );
     }
 
     private function oklchToRgb(float $l, float $c, float $h, float $alpha): RgbColor
     {
-        $hueRad = $h * M_PI / 180.0;
+        $hueRad = ($h * M_PI) / 180.0;
 
         $a = $c * cos($hueRad);
         $b = $c * sin($hueRad);

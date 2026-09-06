@@ -28,7 +28,7 @@ final readonly class ColorMixResolver
             r: $this->channel($a->r, $b->r, $weight),
             g: $this->channel($a->g, $b->g, $weight),
             b: $this->channel($a->b, $b->b, $weight),
-            a: $this->converter->mixChannel($a->a, $b->a, $weight)
+            a: $this->converter->mixChannel($a->a, $b->a, $weight),
         );
     }
 
@@ -38,7 +38,7 @@ final readonly class ColorMixResolver
             h: $this->hue($a->h, $b->h, $weight, $hueMethod),
             s: $this->channel($a->s, $b->s, $weight),
             l: $this->channel($a->l, $b->l, $weight),
-            a: $this->converter->mixChannel($a->a, $b->a, $weight)
+            a: $this->converter->mixChannel($a->a, $b->a, $weight),
         );
     }
 
@@ -48,7 +48,7 @@ final readonly class ColorMixResolver
             l: $this->channel($a->l, $b->l, $weight),
             a: $this->channel($a->a, $b->a, $weight),
             b: $this->channel($a->b, $b->b, $weight),
-            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight)
+            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight),
         );
     }
 
@@ -58,7 +58,7 @@ final readonly class ColorMixResolver
             l: $this->channel($a->l, $b->l, $weight),
             c: $this->channel($a->c, $b->c, $weight),
             h: $this->hue($a->h, $b->h, $weight, $hueMethod),
-            a: $this->converter->mixChannel($a->a, $b->a, $weight)
+            a: $this->converter->mixChannel($a->a, $b->a, $weight),
         );
     }
 
@@ -68,7 +68,7 @@ final readonly class ColorMixResolver
             l: $this->channel($a->l, $b->l, $weight),
             a: $this->channel($a->a, $b->a, $weight),
             b: $this->channel($a->b, $b->b, $weight),
-            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight)
+            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight),
         );
     }
 
@@ -78,7 +78,7 @@ final readonly class ColorMixResolver
             l: $this->channel($a->l, $b->l, $weight),
             c: $this->channel($a->c, $b->c, $weight),
             h: $this->hue($a->h, $b->h, $weight, $hueMethod),
-            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight)
+            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight),
         );
     }
 
@@ -146,16 +146,16 @@ final readonly class ColorMixResolver
     {
         $resultAlpha = $this->converter->mixChannel($a->a, $b->a, $weight);
 
-        $rMixed = ($a->r ?? 0.0) * $a->a * $weight + ($b->r ?? 0.0) * $b->a * (1.0 - $weight);
-        $gMixed = ($a->g ?? 0.0) * $a->a * $weight + ($b->g ?? 0.0) * $b->a * (1.0 - $weight);
-        $bMixed = ($a->b ?? 0.0) * $a->a * $weight + ($b->b ?? 0.0) * $b->a * (1.0 - $weight);
+        $rMixed = (($a->r ?? 0.0) * $a->a * $weight) + (($b->r ?? 0.0) * $b->a * (1.0 - $weight));
+        $gMixed = (($a->g ?? 0.0) * $a->a * $weight) + (($b->g ?? 0.0) * $b->a * (1.0 - $weight));
+        $bMixed = (($a->b ?? 0.0) * $a->a * $weight) + (($b->b ?? 0.0) * $b->a * (1.0 - $weight));
 
         return $resultAlpha > 0.0
             ? new RgbColor(
                 r: $rMixed / $resultAlpha,
                 g: $gMixed / $resultAlpha,
                 b: $bMixed / $resultAlpha,
-                a: $resultAlpha
+                a: $resultAlpha,
             )
             : new RgbColor(r: 0.0, g: 0.0, b: 0.0, a: 0.0);
     }

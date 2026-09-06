@@ -9,10 +9,10 @@ use Bugo\Iris\Contracts\ColorValueInterface;
 final readonly class LabColor implements ColorValueInterface
 {
     public function __construct(
-        public float|null $l,
-        public float|null $a,
-        public float|null $b,
-        public float $alpha = 1.0
+        public ?float $l,
+        public ?float $a,
+        public ?float $b,
+        public float $alpha = 1.0,
     ) {}
 
     public function getSpace(): string

@@ -9,10 +9,10 @@ use Bugo\Iris\Contracts\ColorValueInterface;
 final readonly class OklchColor implements ColorValueInterface
 {
     public function __construct(
-        public float|null $l,
-        public float|null $c,
-        public float|null $h,
-        public float $a = 1.0
+        public ?float $l,
+        public ?float $c,
+        public ?float $h,
+        public float $a = 1.0,
     ) {}
 
     public function getSpace(): string

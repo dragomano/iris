@@ -12,7 +12,7 @@ use Bugo\Iris\Spaces\XyzColor;
 final readonly class SpaceRouter
 {
     public function __construct(
-        private SpaceConverter $colorSpaceConverter = new SpaceConverter()
+        private SpaceConverter $colorSpaceConverter = new SpaceConverter(),
     ) {}
 
     public function convertToRgba(string $space, float $c1, float $c2, float $c3, float $opacity): RgbColor
@@ -23,7 +23,7 @@ final readonly class SpaceRouter
             'display-p3'        => $this->colorSpaceConverter->p3ChannelsToRgb($c1, $c2, $c3, $opacity),
             'display-p3-linear' => $this->colorSpaceConverter->xyzD65ToRgb(
                 $this->colorSpaceConverter->linP3ToXyzD65($c1, $c2, $c3),
-                $opacity
+                $opacity,
             ),
             'a98-rgb'           => $this->colorSpaceConverter->a98ChannelsToRgb($c1, $c2, $c3, $opacity),
             'prophoto-rgb'      => $this->colorSpaceConverter->prophotoChannelsToRgb($c1, $c2, $c3, $opacity),

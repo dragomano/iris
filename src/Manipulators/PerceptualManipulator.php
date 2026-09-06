@@ -13,7 +13,7 @@ use function max;
 final readonly class PerceptualManipulator
 {
     public function __construct(
-        private SpaceConverter $colorSpaceConverter = new SpaceConverter()
+        private SpaceConverter $colorSpaceConverter = new SpaceConverter(),
     ) {}
 
     /**
@@ -24,7 +24,7 @@ final readonly class PerceptualManipulator
         return $this->modifyOklch(
             $color,
             $values,
-            static fn(float $current, float $value): float => $current + $value
+            static fn(float $current, float $value): float => $current + $value,
         );
     }
 
@@ -36,7 +36,7 @@ final readonly class PerceptualManipulator
         return $this->modifyOklch(
             $color,
             $values,
-            static fn(float $current, float $value): float => $value
+            static fn(float $current, float $value): float => $value,
         );
     }
 
@@ -48,7 +48,7 @@ final readonly class PerceptualManipulator
         return $this->modifyLab(
             $color,
             $values,
-            static fn(float $current, float $value): float => $current + $value
+            static fn(float $current, float $value): float => $current + $value,
         );
     }
 
@@ -60,7 +60,7 @@ final readonly class PerceptualManipulator
         return $this->modifyLab(
             $color,
             $values,
-            static fn(float $current, float $value): float => $value
+            static fn(float $current, float $value): float => $value,
         );
     }
 
@@ -74,7 +74,7 @@ final readonly class PerceptualManipulator
             l: $this->modifyPercentage($color->l ?? 0.0, $values['lightness'] ?? null, $modify),
             c: $this->modifyNonNegativeNumber($color->c ?? 0.0, $values['chroma'] ?? null, $modify),
             h: $this->modifyHue($color->h ?? 0.0, $values['hue'] ?? null, $modify),
-            a: $this->modifyNumber($color->a, $values['alpha'] ?? null, $modify)
+            a: $this->modifyNumber($color->a, $values['alpha'] ?? null, $modify),
         );
     }
 
@@ -88,7 +88,7 @@ final readonly class PerceptualManipulator
             l: $this->modifyPercentage($color->l ?? 0.0, $values['lightness'] ?? null, $modify),
             a: $this->modifyUnboundedNumber($color->a ?? 0.0, $values['a'] ?? null, $modify),
             b: $this->modifyUnboundedNumber($color->b ?? 0.0, $values['b'] ?? null, $modify),
-            alpha: $this->modifyNumber($color->alpha, $values['alpha'] ?? null, $modify)
+            alpha: $this->modifyNumber($color->alpha, $values['alpha'] ?? null, $modify),
         );
     }
 

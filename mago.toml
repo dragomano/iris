@@ -1,0 +1,55 @@
+php-version = "8.2"
+version = "1"
+
+[source]
+paths = ["src", "tests", "comparisons.php"]
+
+[formatter]
+preset = "default"
+excludes = ["tests/", "comparisons.php"]
+trailing-comma = true
+sort-uses = "alpha-ascending"
+expand-use-groups = true
+space-around-assignment-in-declare = false
+space-within-grouping-parenthesis = false
+inline-empty-function-braces = true
+inline-empty-method-braces = true
+inline-empty-constructor-braces = true
+inline-empty-classlike-braces = true
+empty-line-before-return = true
+align-assignment-like = true
+space-after-logical-not-unary-prefix-operator = true
+break-promoted-properties-list = false
+preserve-breaking-argument-list = true
+preserve-breaking-member-access-chain = true
+preserve-breaking-parameter-list = true
+preserve-breaking-conditional-expression = true
+preserve-breaking-condition-expression = true
+omit-redundant-arithmetic-binary-expression-parentheses = true
+print-width = 150
+
+[linter]
+integrations = ["phpunit", "pest"]
+excludes = ["comparisons.php"]
+
+[linter.rules]
+no-isset = { allow-array-checks = true }
+function-name = { either = true }
+readable-literal = { enabled = false }
+literal-named-argument = { enabled = false }
+halstead = { enabled = false }
+kan-defect = { enabled = false }
+cyclomatic-complexity = { enabled = false }
+too-many-methods = { enabled = false }
+too-many-properties = { enabled = false }
+sensitive-parameter = { enabled = false }
+no-boolean-flag-parameter = { enabled = false }
+no-else-clause = { enabled = false }
+excessive-parameter-list = { threshold = 5, constructor-threshold = 10 }
+prefer-first-class-callable = { enabled = false }
+
+[analyzer]
+excludes = ["tests/", "comparisons.php"]
+find-unused-expressions = true
+find-unused-definitions = true
+check-missing-override = false

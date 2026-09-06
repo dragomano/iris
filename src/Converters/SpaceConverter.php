@@ -58,8 +58,8 @@ final readonly class SpaceConverter
     private const ACHROMATIC_CHROMA_EPSILON = 1e-6;
 
     private const M_LIN_SRGB_TO_XYZ = [
-        [0.41239079926595951, 0.35758433938387796, 0.18048078840183429],
-        [0.21263900587151036, 0.71516867876775592, 0.072192315360733714],
+        [0.41239079926595951,  0.35758433938387796, 0.18048078840183429],
+        [0.21263900587151036,  0.71516867876775592, 0.072192315360733714],
         [0.019330818715591849, 0.11919477979462599, 0.95053215224966059],
     ];
 
@@ -70,9 +70,9 @@ final readonly class SpaceConverter
     ];
 
     private const M_LIN_P3_TO_XYZ = [
-        [0.48657094864821626, 0.26566769316909294, 0.19821728523436249],
-        [0.22897456406974884, 0.69173852183650619, 0.079286914093744998],
-        [0.0, 0.045113381858902575, 1.0439443689009757],
+        [0.48657094864821626, 0.26566769316909294,  0.19821728523436249],
+        [0.22897456406974884, 0.69173852183650619,  0.079286914093744998],
+        [0.0,                 0.045113381858902575, 1.0439443689009757],
     ];
 
     private const M_XYZ_TO_LIN_P3 = [
@@ -82,8 +82,8 @@ final readonly class SpaceConverter
     ];
 
     private const M_LIN_A98_TO_XYZ = [
-        [0.57666904291013077, 0.18555823790654627, 0.18822864623499472],
-        [0.29734497525053616, 0.62736356625546597, 0.07529145849399789],
+        [0.57666904291013077,  0.18555823790654627,  0.18822864623499472],
+        [0.29734497525053616,  0.62736356625546597,  0.07529145849399789],
         [0.027031361386412378, 0.070688852535827143, 0.99133753683763892],
     ];
 
@@ -94,9 +94,9 @@ final readonly class SpaceConverter
     ];
 
     private const M_LIN_REC2020_TO_XYZ = [
-        [0.63695804830129132, 0.14461690358620838, 0.16888097516417205],
-        [0.26270021201126703, 0.67799807151887104, 0.059301716469861945],
-        [0.0, 0.028072693049087508, 1.0609850577107909],
+        [0.63695804830129132, 0.14461690358620838,  0.16888097516417205],
+        [0.26270021201126703, 0.67799807151887104,  0.059301716469861945],
+        [0.0,                 0.028072693049087508, 1.0609850577107909],
     ];
 
     private const M_XYZ_TO_LIN_REC2020 = [
@@ -107,8 +107,8 @@ final readonly class SpaceConverter
 
     private const M_LIN_PROPHOTO_TO_XYZ_D50 = [
         [0.79776664490064231, 0.13518129740053311, 0.031347734128392202],
-        [0.28807482881940127, 0.711835234241873, 8.9936938725599993e-05],
-        [0.0, 0.0, 0.82510460251046025],
+        [0.28807482881940127, 0.711835234241873,   8.9936938725599993e-05],
+        [0.0,                 0.0,                 0.82510460251046025],
     ];
 
     private const M_XYZ_D50_TO_LIN_PROPHOTO = [
@@ -165,7 +165,7 @@ final readonly class SpaceConverter
         [-0.00419607613867551, -0.70341861793593630, 1.70761469407461200],
     ];
 
-    public function clamp(float|null $value, float $max): float
+    public function clamp(?float $value, float $max): float
     {
         return max(0.0, min($max, $value ?? 0.0));
     }
@@ -181,7 +181,7 @@ final readonly class SpaceConverter
         return $h;
     }
 
-    public function linSrgb(float|null $value): float
+    public function linSrgb(?float $value): float
     {
         $value ??= 0.0;
 
@@ -204,7 +204,7 @@ final readonly class SpaceConverter
             return 12.92 * $value;
         }
 
-        $companded = 1.055 * $abs ** (1.0 / 2.4) - 0.055;
+        $companded = (1.055 * ($abs ** (1.0 / 2.4))) - 0.055;
 
         return $value >= 0.0 ? $companded : -$companded;
     }
@@ -286,7 +286,7 @@ final readonly class SpaceConverter
         $q = $lightness < 0.5
             ? $lightness * (1.0 + $saturation)
             : $lightness + $saturation - ($lightness * $saturation);
-        $p = 2.0 * $lightness - $q;
+        $p = (2.0 * $lightness) - $q;
 
         return [
             $this->hueToRgb($p, $q, $hue + (1.0 / 3.0)),
@@ -313,9 +313,9 @@ final readonly class SpaceConverter
         $factor = 1.0 - $whiteness - $blackness;
 
         return [
-            $r * $factor + $whiteness,
-            $g * $factor + $whiteness,
-            $b * $factor + $whiteness,
+            ($r * $factor) + $whiteness,
+            ($g * $factor) + $whiteness,
+            ($b * $factor) + $whiteness,
         ];
     }
 
@@ -354,7 +354,7 @@ final readonly class SpaceConverter
         return $this->srgbToXyzD65(
             ($rgb->r ?? 0.0) / 255.0,
             ($rgb->g ?? 0.0) / 255.0,
-            ($rgb->b ?? 0.0) / 255.0
+            ($rgb->b ?? 0.0) / 255.0,
         );
     }
 
@@ -381,7 +381,7 @@ final readonly class SpaceConverter
             r: $this->clamp($r, 1.0),
             g: $this->clamp($g, 1.0),
             b: $this->clamp($b, 1.0),
-            a: $opacity
+            a: $opacity,
         );
     }
 
@@ -603,7 +603,7 @@ final readonly class SpaceConverter
             return $value ** (1.0 / 3.0);
         }
 
-        return (self::LAB_KAPPA * $value + self::LAB_DELTA) / self::LAB_SCALE;
+        return ((self::LAB_KAPPA * $value) + self::LAB_DELTA) / self::LAB_SCALE;
     }
 
     public function labToXyzD50(float $l, float $a, float $b): XyzColor
@@ -613,7 +613,7 @@ final readonly class SpaceConverter
         $fz = $fy - ($b / self::LAB_B_FACTOR);
 
         $xr = $fx ** 3.0 > self::LAB_EPSILON ? $fx ** 3.0 : ((self::LAB_SCALE * $fx) - self::LAB_DELTA) / self::LAB_KAPPA;
-        $yr = $l > (self::LAB_KAPPA * self::LAB_EPSILON) ? (($l + self::LAB_DELTA) / self::LAB_SCALE) ** 3.0 : $l / self::LAB_KAPPA;
+        $yr = $l > self::LAB_KAPPA * self::LAB_EPSILON ? (($l + self::LAB_DELTA) / self::LAB_SCALE) ** 3.0 : $l / self::LAB_KAPPA;
         $zr = $fz ** 3.0 > self::LAB_EPSILON ? $fz ** 3.0 : ((self::LAB_SCALE * $fz) - self::LAB_DELTA) / self::LAB_KAPPA;
 
         return new XyzColor(x: $xr * self::D50_WHITE_X, y: $yr, z: $zr * self::D50_WHITE_Z);
@@ -731,7 +731,9 @@ final readonly class SpaceConverter
         [$lPrime, $mPrime, $sPrime] = $this->multiply(self::M_OKLAB_TO_LMS, [$l, $a, $b]);
 
         [$x, $y, $z] = $this->multiply(self::M_LMS_TO_XYZ, [
-            $lPrime ** 3.0, $mPrime ** 3.0, $sPrime ** 3.0,
+            $lPrime ** 3.0,
+            $mPrime ** 3.0,
+            $sPrime ** 3.0,
         ]);
 
         return new XyzColor(x: $x, y: $y, z: $z);
@@ -743,7 +745,9 @@ final readonly class SpaceConverter
     public function xyzD65ToOklabChannels(XyzColor $xyz): array
     {
         [$lLms, $mLms, $sLms] = $this->multiply(self::M_XYZ_TO_LMS, [
-            $xyz->x ?? 0.0, $xyz->y ?? 0.0, $xyz->z ?? 0.0,
+            $xyz->x ?? 0.0,
+            $xyz->y ?? 0.0,
+            $xyz->z ?? 0.0,
         ]);
 
         return $this->lmsToOklab($this->cubeRoot($lLms), $this->cubeRoot($mLms), $this->cubeRoot($sLms));
@@ -790,7 +794,7 @@ final readonly class SpaceConverter
             r: $this->gamSrgb($rLinear),
             g: $this->gamSrgb($gLinear),
             b: $this->gamSrgb($bLinear),
-            a: $opacity
+            a: $opacity,
         );
     }
 
@@ -853,8 +857,8 @@ final readonly class SpaceConverter
 
     public function interpolateHue(float $h1, float $h2, float $p): float
     {
-        $delta = fmod(($h2 - $h1) + 540.0, 360.0) - 180.0;
-        $mixed = $h1 + (1.0 - $p) * $delta;
+        $delta = fmod($h2 - $h1 + 540.0, 360.0) - 180.0;
+        $mixed = $h1 + ((1.0 - $p) * $delta);
 
         return $this->normalizeHue($mixed);
     }
@@ -868,7 +872,7 @@ final readonly class SpaceConverter
         return rtrim($text, '.');
     }
 
-    public function mixChannel(float|null $a, float|null $b, float $p): float
+    public function mixChannel(?float $a, ?float $b, float $p): float
     {
         return (($a ?? 0.0) * $p) + (($b ?? 0.0) * (1.0 - $p));
     }
@@ -909,8 +913,7 @@ final readonly class SpaceConverter
 
     public function isAchromaticRgb(RgbColor $rgb): bool
     {
-        return abs(($rgb->r ?? 0.0) - ($rgb->g ?? 0.0)) <= 0.000001
-            && abs(($rgb->g ?? 0.0) - ($rgb->b ?? 0.0)) <= 0.000001;
+        return abs(($rgb->r ?? 0.0) - ($rgb->g ?? 0.0)) <= 0.000001 && abs(($rgb->g ?? 0.0) - ($rgb->b ?? 0.0)) <= 0.000001;
     }
 
     public function calculateDeltaE(RgbColor $rgb1, RgbColor $rgb2): float
@@ -922,7 +925,7 @@ final readonly class SpaceConverter
         $deltaA = $a1 - $a2;
         $deltaB = $b1 - $b2;
 
-        return sqrt($deltaL * $deltaL + $deltaA * $deltaA + $deltaB * $deltaB);
+        return sqrt(($deltaL * $deltaL) + ($deltaA * $deltaA) + ($deltaB * $deltaB));
     }
 
     /** @deprecated Use linSrgb(). */
@@ -932,7 +935,7 @@ final readonly class SpaceConverter
     }
 
     /** @deprecated Use linSrgb(). */
-    public function srgbToLinearUnclamped(float|null $value): float
+    public function srgbToLinearUnclamped(?float $value): float
     {
         return $this->linSrgb($value);
     }
@@ -1323,9 +1326,9 @@ final readonly class SpaceConverter
     private function multiply(array $m, array $v): array
     {
         return [
-            $m[0][0] * $v[0] + $m[0][1] * $v[1] + $m[0][2] * $v[2],
-            $m[1][0] * $v[0] + $m[1][1] * $v[1] + $m[1][2] * $v[2],
-            $m[2][0] * $v[0] + $m[2][1] * $v[1] + $m[2][2] * $v[2],
+            ($m[0][0] * $v[0]) + ($m[0][1] * $v[1]) + ($m[0][2] * $v[2]),
+            ($m[1][0] * $v[0]) + ($m[1][1] * $v[1]) + ($m[1][2] * $v[2]),
+            ($m[2][0] * $v[0]) + ($m[2][1] * $v[1]) + ($m[2][2] * $v[2]),
         ];
     }
 
@@ -1339,16 +1342,16 @@ final readonly class SpaceConverter
             $t -= 1.0;
         }
 
-        if ($t < (1.0 / 6.0)) {
-            return $p + ($q - $p) * 6.0 * $t;
+        if ($t < 1.0 / 6.0) {
+            return $p + (($q - $p) * 6.0 * $t);
         }
 
         if ($t < 0.5) {
             return $q;
         }
 
-        if ($t < (2.0 / 3.0)) {
-            return $p + ($q - $p) * ((2.0 / 3.0) - $t) * 6.0;
+        if ($t < 2.0 / 3.0) {
+            return $p + (($q - $p) * ((2.0 / 3.0) - $t) * 6.0);
         }
 
         return $p;
@@ -1416,7 +1419,7 @@ final readonly class SpaceConverter
             l: $l * 100.0,
             c: max(0.0, $chroma),
             h: $chroma < self::ACHROMATIC_CHROMA_EPSILON ? null : $this->normalizeHue($hue),
-            a: $alpha
+            a: $alpha,
         );
     }
 
@@ -1425,7 +1428,7 @@ final readonly class SpaceConverter
      */
     private function polarToCartesian(float $radius, float $hueDegrees): array
     {
-        $hueRadians = $hueDegrees * M_PI / 180.0;
+        $hueRadians = ($hueDegrees * M_PI) / 180.0;
 
         return [$radius * cos($hueRadians), $radius * sin($hueRadians)];
     }
@@ -1435,12 +1438,12 @@ final readonly class SpaceConverter
      */
     private function cartesianToPolar(float $a, float $b): array
     {
-        $hue = atan2($b, $a) * 180.0 / M_PI;
+        $hue = (atan2($b, $a) * 180.0) / M_PI;
 
         if ($hue < 0.0) {
             $hue += 360.0;
         }
 
-        return [sqrt($a * $a + $b * $b), $hue];
+        return [sqrt(($a * $a) + ($b * $b)), $hue];
     }
 }

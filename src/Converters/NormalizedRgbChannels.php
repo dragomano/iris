@@ -13,6 +13,6 @@ final readonly class NormalizedRgbChannels
         public float $a,
         public float $max,
         public float $min,
-        public float $delta
+        public float $delta,
     ) {}
 }

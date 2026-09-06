@@ -9,10 +9,10 @@ use Bugo\Iris\Contracts\ColorValueInterface;
 final readonly class HwbColor implements ColorValueInterface
 {
     public function __construct(
-        public float|null $h,
-        public float|null $w,
-        public float|null $b,
-        public float $a = 1.0
+        public ?float $h,
+        public ?float $w,
+        public ?float $b,
+        public float $a = 1.0,
     ) {}
 
     public function getSpace(): string

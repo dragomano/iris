@@ -28,7 +28,7 @@ final readonly class LiteralParser
                 r: $named[0],
                 g: $named[1],
                 b: $named[2],
-                a: $named[3] ?? 1.0
+                a: $named[3] ?? 1.0,
             );
         }
 
@@ -61,7 +61,7 @@ final readonly class LiteralParser
             return new RgbColor(
                 r: (float) hexdec($hex[1] . $hex[2]),
                 g: (float) hexdec($hex[3] . $hex[4]),
-                b: (float) hexdec($hex[5] . $hex[6])
+                b: (float) hexdec($hex[5] . $hex[6]),
             );
         }
 
@@ -70,7 +70,7 @@ final readonly class LiteralParser
                 r: (float) hexdec($hex[1] . $hex[2]),
                 g: (float) hexdec($hex[3] . $hex[4]),
                 b: (float) hexdec($hex[5] . $hex[6]),
-                a: (float) hexdec($hex[7] . $hex[8]) / 255.0
+                a: (float) hexdec($hex[7] . $hex[8]) / 255.0,
             );
         }
 

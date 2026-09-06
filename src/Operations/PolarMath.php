@@ -26,6 +26,6 @@ final readonly class PolarMath
 
     public function toRadians(float $degrees): float
     {
-        return $degrees * M_PI / 180.0;
+        return ($degrees * M_PI) / 180.0;
     }
 }
