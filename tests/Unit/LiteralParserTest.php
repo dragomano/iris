@@ -13,8 +13,8 @@ describe('LiteralParser', function (): void {
     it('converts named colors to rgb', function (): void {
         $rgb = $this->converter->toRgb('red');
 
-        expect($rgb)->not->toBeNull()
-            ->and($rgb?->r)->toBe(255.0)
+        expect($rgb)->toBeInstanceOf(RgbColor::class)
+            ->and($rgb?->r)->toBe(1.0)
             ->and($rgb?->g)->toBe(0.0)
             ->and($rgb?->b)->toBe(0.0)
             ->and($rgb?->a)->toBe(1.0);
@@ -23,20 +23,20 @@ describe('LiteralParser', function (): void {
     it('converts short hex colors to rgb', function (): void {
         $rgb = $this->converter->toRgb('#abc');
 
-        expect($rgb)->not->toBeNull()
-            ->and($rgb?->r)->toBe(170.0)
-            ->and($rgb?->g)->toBe(187.0)
-            ->and($rgb?->b)->toBe(204.0)
+        expect($rgb)->toBeInstanceOf(RgbColor::class)
+            ->and($rgb?->r)->toBeCloseTo(170.0 / 255.0, 0.000001)
+            ->and($rgb?->g)->toBeCloseTo(187.0 / 255.0, 0.000001)
+            ->and($rgb?->b)->toBeCloseTo(204.0 / 255.0, 0.000001)
             ->and($rgb?->a)->toBe(1.0);
     });
 
     it('converts hex colors with alpha to rgb', function (): void {
         $rgb = $this->converter->toRgb('#112233b3');
 
-        expect($rgb)->not->toBeNull()
-            ->and($rgb?->r)->toBe(17.0)
-            ->and($rgb?->g)->toBe(34.0)
-            ->and($rgb?->b)->toBe(51.0)
+        expect($rgb)->toBeInstanceOf(RgbColor::class)
+            ->and($rgb?->r)->toBeCloseTo(17.0 / 255.0, 0.000001)
+            ->and($rgb?->g)->toBeCloseTo(34.0 / 255.0, 0.000001)
+            ->and($rgb?->b)->toBeCloseTo(51.0 / 255.0, 0.000001)
             ->and($rgb?->a)->toBeCloseTo(179 / 255, 0.001);
     });
 
@@ -51,13 +51,13 @@ describe('LiteralParser', function (): void {
     });
 
     it('returns currentColor context when value is currentcolor', function (): void {
-        $context = new RgbColor(r: 100.0, g: 150.0, b: 200.0, a: 0.8);
+        $context = new RgbColor(r: 0.4, g: 0.6, b: 0.8, a: 0.8);
         $result  = $this->converter->toRgb('currentcolor', $context);
 
         expect($result)->toBe($context)
-            ->and($result->r)->toBe(100.0)
-            ->and($result->g)->toBe(150.0)
-            ->and($result->b)->toBe(200.0)
+            ->and($result->r)->toBe(0.4)
+            ->and($result->g)->toBe(0.6)
+            ->and($result->b)->toBe(0.8)
             ->and($result->a)->toBe(0.8);
     });
 

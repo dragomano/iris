@@ -17,38 +17,38 @@ describe('ColorMixResolver', function (): void {
 
     describe('mixSrgb', function (): void {
         it('weight=1.0 returns first color', function (): void {
-            $a = new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0);
-            $b = new RgbColor(r: 0.0, g: 0.0, b: 255.0, a: 1.0);
+            $a = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0);
+            $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 1.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 1.0);
 
-            expect($result->r)->toBeCloseTo(255.0)
+            expect($result->r)->toBeCloseTo(1.0)
                 ->and($result->b)->toBeCloseTo(0.0);
         });
 
         it('weight=0.0 returns second color', function (): void {
-            $a = new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0);
-            $b = new RgbColor(r: 0.0, g: 0.0, b: 255.0, a: 1.0);
+            $a = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0);
+            $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 1.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 0.0);
 
             expect($result->r)->toBeCloseTo(0.0)
-                ->and($result->b)->toBeCloseTo(255.0);
+                ->and($result->b)->toBeCloseTo(1.0);
         });
 
         it('weight=0.5 produces midpoint', function (): void {
-            $a = new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0);
-            $b = new RgbColor(r: 0.0, g: 0.0, b: 255.0, a: 1.0);
+            $a = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0);
+            $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 1.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5);
 
-            expect($result->r)->toBeCloseTo(127.5)
-                ->and($result->b)->toBeCloseTo(127.5);
+            expect($result->r)->toBeCloseTo(0.5)
+                ->and($result->b)->toBeCloseTo(0.5);
         });
 
         it('alpha is interpolated', function (): void {
-            $a = new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0);
-            $b = new RgbColor(r: 0.0, g: 0.0, b: 255.0, a: 0.0);
+            $a = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0);
+            $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 0.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5);
 
@@ -228,25 +228,26 @@ describe('ColorMixResolver', function (): void {
                 ->and($result->a)->toBeCloseTo(0.75);
         });
 
-        it('returns black when result alpha is zero', function (): void {
+        it('keeps the premultiplied value when result alpha is zero', function (): void {
             $a = new RgbColor(r: 1.0, g: 0.5, b: 0.25, a: 0.0);
             $b = new RgbColor(r: 0.5, g: 0.25, b: 1.0, a: 0.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5, premultiplied: true);
 
+            // both alphas are zero, so every premultiplied channel collapses to zero
             expect($result->r)->toBe(0.0)
                 ->and($result->g)->toBe(0.0)
                 ->and($result->b)->toBe(0.0)
                 ->and($result->a)->toBe(0.0);
         });
 
-        it('handles null channels in premultiplied mode', function (): void {
+        it('carries a missing channel forward in premultiplied mode', function (): void {
             $a = new RgbColor(r: null, g: 0.0, b: 0.0, a: 0.5);
             $b = new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 1.0);
 
             $result = $this->resolver->mixSrgb($a, $b, 0.5, premultiplied: true);
 
-            // r = null treated as 0: rPremult=0, rPremult2=0; r=0/0.75=0
+            // CSS Color 4: a missing component is carried forward from the other color
             expect($result->r)->toBeCloseTo(0.0)
                 ->and($result->a)->toBeCloseTo(0.75);
         });
@@ -485,6 +486,78 @@ describe('ColorMixResolver', function (): void {
             $result = $this->resolver->mixLch($a, $b, 0.5);
 
             expect($result->h)->toBeCloseTo(180.0);
+        });
+    });
+
+    describe('premultiplied alpha across color spaces', function (): void {
+        it('premultiplies hsl saturation and lightness but not hue', function (): void {
+            $a = new HslColor(h: 0.0, s: 100.0, l: 50.0, a: 0.5);
+            $b = new HslColor(h: 120.0, s: 50.0, l: 100.0, a: 1.0);
+
+            $result = $this->resolver->mixHsl($a, $b, 0.5, premultiplied: true);
+
+            // alpha = 0.75; s = (100*0.5*0.5 + 50*1*0.5) / 0.75 = 50 / 0.75
+            expect($result->s)->toBeCloseTo(50.0 / 0.75, 0.0001)
+                ->and($result->l)->toBeCloseTo(62.5 / 0.75, 0.0001)
+                ->and($result->h)->toBeCloseTo(60.0, 0.0001)
+                ->and($result->a)->toBeCloseTo(0.75, 0.0001);
+        });
+
+        it('premultiplies all three oklab axes', function (): void {
+            $a = new OklabColor(l: 100.0, a: 0.2, b: -0.1, alpha: 0.5);
+            $b = new OklabColor(l: 0.0, a: 0.0, b: 0.0, alpha: 1.0);
+
+            $result = $this->resolver->mixOklab($a, $b, 0.5, premultiplied: true);
+
+            expect($result->l)->toBeCloseTo(25.0 / 0.75, 0.0001)
+                ->and($result->a)->toBeCloseTo(0.05 / 0.75, 0.0001)
+                ->and($result->b)->toBeCloseTo(-0.025 / 0.75, 0.0001)
+                ->and($result->alpha)->toBeCloseTo(0.75, 0.0001);
+        });
+
+        it('premultiplies oklch lightness and chroma but not hue', function (): void {
+            $a = new OklchColor(l: 100.0, c: 0.2, h: 20.0, a: 0.5);
+            $b = new OklchColor(l: 0.0, c: 0.0, h: 40.0, a: 1.0);
+
+            $result = $this->resolver->mixOklch($a, $b, 0.5, premultiplied: true);
+
+            expect($result->l)->toBeCloseTo(25.0 / 0.75, 0.0001)
+                ->and($result->c)->toBeCloseTo(0.05 / 0.75, 0.0001)
+                ->and($result->h)->toBeCloseTo(30.0, 0.0001);
+        });
+
+        it('premultiplies all three lab axes', function (): void {
+            $a = new LabColor(l: 100.0, a: 50.0, b: -50.0, alpha: 0.5);
+            $b = new LabColor(l: 0.0, a: 0.0, b: 0.0, alpha: 1.0);
+
+            $result = $this->resolver->mixLab($a, $b, 0.5, premultiplied: true);
+
+            expect($result->l)->toBeCloseTo(25.0 / 0.75, 0.0001)
+                ->and($result->a)->toBeCloseTo(12.5 / 0.75, 0.0001)
+                ->and($result->b)->toBeCloseTo(-12.5 / 0.75, 0.0001);
+        });
+
+        it('premultiplies lch lightness and chroma but not hue', function (): void {
+            $a = new LchColor(l: 100.0, c: 60.0, h: 20.0, alpha: 0.5);
+            $b = new LchColor(l: 0.0, c: 0.0, h: 40.0, alpha: 1.0);
+
+            $result = $this->resolver->mixLch($a, $b, 0.5, premultiplied: true);
+
+            expect($result->l)->toBeCloseTo(25.0 / 0.75, 0.0001)
+                ->and($result->c)->toBeCloseTo(15.0 / 0.75, 0.0001)
+                ->and($result->h)->toBeCloseTo(30.0, 0.0001);
+        });
+
+        it('is a no-op for fully opaque colors', function (): void {
+            $a = new LabColor(l: 100.0, a: 50.0, b: -50.0, alpha: 1.0);
+            $b = new LabColor(l: 0.0, a: 0.0, b: 0.0, alpha: 1.0);
+
+            $plain       = $this->resolver->mixLab($a, $b, 0.5);
+            $premultiped = $this->resolver->mixLab($a, $b, 0.5, premultiplied: true);
+
+            expect($premultiped->l)->toBeCloseTo($plain->l ?? 0.0, 0.0000001)
+                ->and($premultiped->a)->toBeCloseTo($plain->a ?? 0.0, 0.0000001)
+                ->and($premultiped->b)->toBeCloseTo($plain->b ?? 0.0, 0.0000001);
         });
     });
 });

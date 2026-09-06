@@ -21,24 +21,65 @@ Iris supports the legacy CSS spaces and the modern color spaces used by `lab()`,
 
 | Class        | Space     | Channels                                 |
 |--------------|-----------|------------------------------------------|
-| `RgbColor`   | `rgb`     | r, g, b (0-255), a (0-1)                 |
+| `RgbColor`   | `rgb`     | r, g, b (0-1), a (0-1)                   |
 | `HslColor`   | `hsl`     | h (0-360), s (0-100), l (0-100), a (0-1) |
 | `HwbColor`   | `hwb`     | h (0-360), w (0-100), b (0-100), a (0-1) |
 | `LabColor`   | `lab`     | l (0-100), a, b, alpha (0-1)             |
 | `LchColor`   | `lch`     | l (0-100), c, h (0-360), alpha (0-1)     |
-| `OklabColor` | `oklab`   | l (0-1), a, b, alpha (0-1)               |
-| `OklchColor` | `oklch`   | l (0-100), c, h (0-360), a (0-1)         |
+| `OklabColor` | `oklab`   | l (0-100), a, b, alpha (0-1)             |
+| `OklchColor` | `oklch`   | l (0-100), c (0-0.4), h (0-360), a (0-1) |
 | `XyzColor`   | `xyz-*`   | x, y, z                                  |
 
 `XyzColor` is reused for both `xyz-d65` and `xyz-d50`; the white point depends on the method or route you call.
 
 ## Channel scales and conventions
 
-Iris does not use one universal channel scale across every API surface.
+`RgbColor` channels are always normalized to `0-1`, on every API surface. The same object can be passed
+to `SpaceConverter`, `CssSerializer`, `LiteralSerializer`, `ColorMixResolver`, and the manipulators
+without rescaling, and `rgbToX()` / `xToRgb()` pairs are exact inverses of each other.
 
-- Object API: methods that accept `RgbColor`, `HslColor`, `LabColor`, `OklchColor`, and other space objects follow each object's native scale. For example, `RgbColor` stores byte-like channels (`0-255`), `HslColor` and `HwbColor` use percentage-like `0-100` channels, `OklchColor` stores lightness on a `0-100` scale, and `OklabColor` keeps lightness normalized to `0-1`.
-- Channel API: methods whose names contain `Channels`, such as `rgbToRec2020Channels()`, `oklchChannelsToRgb()`, or `xyzD65ToOklabChannels()`, form the normalized low-level API. These methods accept math-oriented channel values and usually return normalized floats or typed objects built from those normalized channels.
-- `SpaceRouter`: routes by string space name on top of the channel API. It is best suited for CSS `color(<space> ...)` flows, where spaces such as `srgb`, `display-p3`, `rec2020`, and `xyz-*` are passed around as normalized channel triples. `lab`, `lch`, `oklab`, and `oklch` are also accepted for symmetry, but the typed `SpaceConverter` methods are usually clearer when you already know the target space at compile time.
+Bytes appear only at the input and output boundary:
+
+- `LiteralParser` accepts byte-based hex literals and named colors, and returns normalized `RgbColor`.
+- `LiteralSerializer` and `HexEncoder` convert normalized channels back to hex bytes.
+- `NamedColors::NAMED_RGB` stores byte-like channel values, since it mirrors the CSS named color table.
+
+Other spaces keep the scale their CSS function uses: `HslColor` and `HwbColor` use percentage-like
+`0-100` channels, `LabColor`, `LchColor`, `OklabColor` and `OklchColor` store lightness on `0-100`,
+and chroma or a/b axes stay on their native numeric ranges.
+
+`SpaceRouter` routes by string space name on top of the channel API. It is best suited for CSS
+`color(<space> ...)` flows, where spaces such as `srgb`, `display-p3`, `rec2020`, and `xyz-*` are passed
+around as normalized channel triples. `lab`, `lch`, `oklab`, and `oklch` are also accepted for symmetry,
+but the typed `SpaceConverter` methods are usually clearer when you already know the target space at
+compile time.
+
+## Migrating from 0.3
+
+`RgbColor` no longer accepts byte channels. Divide existing values by 255, or let `LiteralParser` do it:
+
+```php
+// before
+$color = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+
+// after
+$color = new RgbColor(r: 1.0, g: 0.502, b: 0.0, a: 1.0);
+// or
+$color = (new LiteralParser())->toRgb('#ff8000');
+```
+
+Other breaking changes:
+
+- `CssSerializer::toCss()` now emits a percentage lightness for `oklab()` and `oklch()`, matching what it
+  already did for `lab()` and `lch()`. The previous bare-number form was not valid CSS.
+- `ColorMixResolver::mixHsl()`, `mixLab()`, `mixLch()`, `mixOklab()` and `mixOklch()` gained a
+  `$premultiplied` flag, mirroring `mixSrgb()`. `Serializer` enables it, so `color-mix()` results change
+  for colors with alpha below 1.
+- `color-mix(in srgb-linear, ...)` now interpolates in linear-light sRGB instead of gamma-encoded sRGB.
+- Percentage channels in `lch()`, `oklab()` and `oklch()` are resolved against the CSS Color 4 reference
+  ranges instead of being dropped.
+- `SpaceConverter::normalizedChannelsToOklch()` is deprecated in favor of `rgbToOklch()`; both now behave
+  identically.
 
 ## When to use what
 
@@ -58,9 +99,9 @@ use Bugo\Iris\Spaces\HslColor;
 use Bugo\Iris\Spaces\OklchColor;
 use Bugo\Iris\Spaces\RgbColor;
 
-$red   = new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0);
+$red   = new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0);
 $green = new HslColor(h: 120.0, s: 100.0, l: 50.0, a: 1.0);
-$blue  = new OklchColor(l: 45.2, c: 31.3, h: 264.1, a: 1.0);
+$blue  = new OklchColor(l: 45.2, c: 0.313, h: 264.1, a: 1.0);
 ```
 
 ### Converting between color spaces
@@ -70,12 +111,12 @@ use Bugo\Iris\Converters\SpaceConverter;
 use Bugo\Iris\Spaces\RgbColor;
 
 $converter = new SpaceConverter();
-$rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+$rgb       = new RgbColor(r: 1.0, g: 0.5, b: 0.0, a: 1.0);
 
 // RGB -> OKLCh object
 $oklch = $converter->rgbToOklch($rgb);
-echo $oklch->l; // ~70 on the object scale
-echo $oklch->h; // ~55
+echo $oklch->l; // ~73 on the 0-100 lightness scale
+echo $oklch->h; // ~53
 
 // RGB -> XYZ D65 object
 $xyz = $converter->rgbToXyzD65($rgb);
@@ -88,7 +129,7 @@ echo $xyz->x;
 $xyzFromChannels = $converter->srgbToXyzD65(1.0, 0.5, 0.0);
 ```
 
-The `*Channels*` methods are the normalized channel API. Methods that accept color objects such as `RgbColor` or `OklchColor` remain object-oriented entry points.
+The `*Channels*` methods are the low-level channel API. Methods that accept color objects such as `RgbColor` or `OklchColor` remain object-oriented entry points; both operate on the same normalized sRGB channels, so `rgbToOklch()` and `oklchToRgb()` round-trip exactly.
 
 ### Routing by space name
 
@@ -116,10 +157,10 @@ use Bugo\Iris\Manipulators\LegacyManipulator;
 use Bugo\Iris\Spaces\RgbColor;
 
 $manipulator = new LegacyManipulator();
-$color       = new RgbColor(r: 200.0, g: 100.0, b: 50.0, a: 1.0);
+$color       = new RgbColor(r: 0.784, g: 0.392, b: 0.196, a: 1.0);
 
 $gray      = $manipulator->grayscale($color);
-$mixed     = $manipulator->mix($color, new RgbColor(0.0, 150.0, 255.0, 1.0), 0.5);
+$mixed     = $manipulator->mix($color, new RgbColor(0.0, 0.588, 1.0, 1.0), 0.5);
 $darker    = $manipulator->darken($color, 10.0);
 $saturated = $manipulator->saturate($color, 20.0);
 $rotated   = $manipulator->spin($color, 30.0);
@@ -134,7 +175,7 @@ use Bugo\Iris\Operations\GamutMapper;
 use Bugo\Iris\Spaces\OklchColor;
 
 $mapper = new GamutMapper();
-$oklch  = new OklchColor(l: 70.0, c: 40.0, h: 30.0, a: 1.0);
+$oklch  = new OklchColor(l: 70.0, c: 0.35, h: 30.0, a: 1.0);
 
 $clipped = $mapper->clip($oklch);
 $mapped  = $mapper->localMinde($oklch);
@@ -154,20 +195,24 @@ use Bugo\Iris\Spaces\RgbColor;
 $resolver = new ColorMixResolver();
 
 $mixSrgb = $resolver->mixSrgb(
-    new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0),
-    new RgbColor(r: 0.0, g: 0.0, b: 255.0, a: 1.0),
+    new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0),
+    new RgbColor(r: 0.0, g: 0.0, b: 1.0, a: 1.0),
     0.5,
 );
 
 $mixOklch = $resolver->mixOklch(
-    new OklchColor(l: 70.0, c: 20.0, h: 30.0, a: 1.0),
-    new OklchColor(l: 50.0, c: 10.0, h: 200.0, a: 1.0),
+    new OklchColor(l: 70.0, c: 0.2, h: 30.0, a: 1.0),
+    new OklchColor(l: 50.0, c: 0.1, h: 200.0, a: 1.0),
     0.5,
     hueMethod: 'shorter',
 );
 ```
 
 If one side uses `null` for a channel, the other side wins instead of interpolating. If both sides are `null`, the result stays `null`.
+
+Every `mix*()` method takes an optional `$premultiplied` flag. Per CSS Color Level 4, interpolation should
+happen in premultiplied form when alpha differs between the two colors; the hue channel of cylindrical
+spaces is never premultiplied. `Serializer` enables the flag when resolving `color-mix()`.
 
 ### Hex encoding
 
@@ -199,8 +244,8 @@ $serializer = new LiteralSerializer();
 $rgbFromHex  = $converter->toRgb('#ff8000');
 $rgbFromName = $converter->toRgb('tomato');
 
-echo $serializer->serialize(new RgbColor(r: 255.0, g: 0.0, b: 0.0, a: 1.0));
-echo $serializer->serialize(new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0));
+echo $serializer->serialize(new RgbColor(r: 1.0, g: 0.0, b: 0.0, a: 1.0));   // 'red'
+echo $serializer->serialize(new RgbColor(r: 1.0, g: 0.502, b: 0.0, a: 1.0)); // '#ff8000'
 ```
 
 ### `Serializer` vs `CssSerializer`
@@ -229,25 +274,27 @@ use Bugo\Iris\Spaces\OklchColor;
 use Bugo\Iris\Spaces\XyzColor;
 
 $serializer = new CssSerializer();
-$oklch      = new OklchColor(l: 70.0, c: 15.0, h: 55.0, a: 1.0);
+$oklch      = new OklchColor(l: 70.0, c: 0.15, h: 55.0, a: 1.0);
 
-echo $serializer->toCss($oklch);       // 'oklch(70 15 55)'
+echo $serializer->toCss($oklch);       // 'oklch(70% 0.15 55)'
 echo $serializer->toCss($oklch, true); // still serialized as a CSS color string
 
 $hsl   = new HslColor(h: 30.0, s: 100.0, l: 50.0, a: 0.8);
 $lab   = new LabColor(l: 50.0, a: 20.0, b: -30.0, alpha: 1.0);
 $lch   = new LchColor(l: 70.0, c: 30.0, h: 180.0, alpha: 1.0);
-$oklab = new OklabColor(l: 0.5, a: 0.1, b: -0.05, alpha: 1.0);
+$oklab = new OklabColor(l: 50.0, a: 0.1, b: -0.05, alpha: 1.0);
 $xyz   = new XyzColor(x: 0.9505, y: 1.0, z: 1.0890);
 
 echo $serializer->toCss($hsl);   // 'hsl(30 100% 50% / 0.80)'
 echo $serializer->toCss($lab);   // 'lab(50% 20 -30)'
 echo $serializer->toCss($lch);   // 'lch(70% 30 180)'
-echo $serializer->toCss($oklab); // 'oklab(0.5 0.1 -0.05)'
+echo $serializer->toCss($oklab); // 'oklab(50% 0.1 -0.05)'
 echo $serializer->toCss($xyz);   // 'color(xyz-d65 0.9505 1 1.089)'
 ```
 
 If you specifically need hex from an `RgbColor`, call `CssSerializer::toHex()` or `LiteralSerializer`.
+Both read the same normalized channels; `LiteralSerializer` additionally prefers a CSS named color when one
+matches exactly.
 
 ### Model conversion
 
@@ -256,7 +303,7 @@ use Bugo\Iris\Converters\ModelConverter;
 use Bugo\Iris\Spaces\RgbColor;
 
 $converter = new ModelConverter();
-$rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+$rgb       = new RgbColor(r: 1.0, g: 0.5, b: 0.0, a: 1.0);
 $hsl       = $converter->rgbToHslColor($rgb);
 $rgbBack   = $converter->hslToRgbColor($hsl);
 ```
@@ -271,8 +318,8 @@ use Bugo\Iris\Spaces\OklchColor;
 $manipulator = new PerceptualManipulator();
 
 $adjusted = $manipulator->adjustOklch(
-    new OklchColor(l: 70.0, c: 15.0, h: 55.0, a: 1.0),
-    ['lightness' => 10.0, 'chroma' => -5.0, 'hue' => 20.0],
+    new OklchColor(l: 70.0, c: 0.15, h: 55.0, a: 1.0),
+    ['lightness' => 10.0, 'chroma' => -0.05, 'hue' => 20.0],
 );
 
 $labChanged = $manipulator->changeLab(
@@ -304,7 +351,7 @@ use Bugo\Iris\Spaces\RgbColor;
 use Bugo\Iris\Spaces\XyzColor;
 
 $converter = new SpaceConverter();
-$rgb       = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+$rgb       = new RgbColor(r: 1.0, g: 0.5, b: 0.0, a: 1.0);
 
 [$p3R, $p3G, $p3B] = $converter->rgbToP3Channels($rgb);
 
@@ -342,7 +389,8 @@ NamedColors::isNamedColor('tomato'); // true
 $names = NamedColors::getNames();
 ```
 
-`NamedColors::NAMED_RGB` stores byte-like channel values, not normalized `0-1` floats.
+`NamedColors::NAMED_RGB` stores byte-like channel values, mirroring the CSS named color table.
+Use `LiteralParser::toRgb()` to get a normalized `RgbColor` from a name.
 
 ### ColorValueInterface
 
@@ -362,7 +410,7 @@ function describeColor(ColorValueInterface $color): string
     );
 }
 
-echo describeColor(new OklchColor(l: 70.0, c: 15.0, h: 55.0, a: 1.0));
+echo describeColor(new OklchColor(l: 70.0, c: 0.15, h: 55.0, a: 1.0));
 ```
 
 ## Exceptions

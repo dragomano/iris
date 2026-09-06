@@ -11,6 +11,7 @@ use Bugo\Iris\Spaces\LchColor;
 use Bugo\Iris\Spaces\OklabColor;
 use Bugo\Iris\Spaces\OklchColor;
 use Bugo\Iris\Spaces\RgbColor;
+use Closure;
 
 use function fmod;
 
@@ -20,66 +21,124 @@ final readonly class ColorMixResolver
 
     public function mixSrgb(RgbColor $a, RgbColor $b, float $weight, bool $premultiplied = false): RgbColor
     {
-        if ($premultiplied) {
-            return $this->mixSrgbPremultiplied($a, $b, $weight);
-        }
+        $alpha   = $this->converter->mixChannel($a->a, $b->a, $weight);
+        $channel = $this->channelMixer($a->a, $b->a, $weight, $alpha, $premultiplied);
 
         return new RgbColor(
-            r: $this->channel($a->r, $b->r, $weight),
-            g: $this->channel($a->g, $b->g, $weight),
-            b: $this->channel($a->b, $b->b, $weight),
-            a: $this->converter->mixChannel($a->a, $b->a, $weight),
+            r: $channel($a->r, $b->r),
+            g: $channel($a->g, $b->g),
+            b: $channel($a->b, $b->b),
+            a: $alpha,
         );
     }
 
-    public function mixHsl(HslColor $a, HslColor $b, float $weight, string $hueMethod = 'shorter'): HslColor
-    {
+    public function mixHsl(
+        HslColor $a,
+        HslColor $b,
+        float $weight,
+        string $hueMethod = 'shorter',
+        bool $premultiplied = false,
+    ): HslColor {
+        $alpha   = $this->converter->mixChannel($a->a, $b->a, $weight);
+        $channel = $this->channelMixer($a->a, $b->a, $weight, $alpha, $premultiplied);
+
         return new HslColor(
             h: $this->hue($a->h, $b->h, $weight, $hueMethod),
-            s: $this->channel($a->s, $b->s, $weight),
-            l: $this->channel($a->l, $b->l, $weight),
-            a: $this->converter->mixChannel($a->a, $b->a, $weight),
+            s: $channel($a->s, $b->s),
+            l: $channel($a->l, $b->l),
+            a: $alpha,
         );
     }
 
-    public function mixOklab(OklabColor $a, OklabColor $b, float $weight): OklabColor
+    public function mixOklab(OklabColor $a, OklabColor $b, float $weight, bool $premultiplied = false): OklabColor
     {
+        $alpha   = $this->converter->mixChannel($a->alpha, $b->alpha, $weight);
+        $channel = $this->channelMixer($a->alpha, $b->alpha, $weight, $alpha, $premultiplied);
+
         return new OklabColor(
-            l: $this->channel($a->l, $b->l, $weight),
-            a: $this->channel($a->a, $b->a, $weight),
-            b: $this->channel($a->b, $b->b, $weight),
-            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight),
+            l: $channel($a->l, $b->l),
+            a: $channel($a->a, $b->a),
+            b: $channel($a->b, $b->b),
+            alpha: $alpha,
         );
     }
 
-    public function mixOklch(OklchColor $a, OklchColor $b, float $weight, string $hueMethod = 'shorter'): OklchColor
-    {
+    public function mixOklch(
+        OklchColor $a,
+        OklchColor $b,
+        float $weight,
+        string $hueMethod = 'shorter',
+        bool $premultiplied = false,
+    ): OklchColor {
+        $alpha   = $this->converter->mixChannel($a->a, $b->a, $weight);
+        $channel = $this->channelMixer($a->a, $b->a, $weight, $alpha, $premultiplied);
+
         return new OklchColor(
-            l: $this->channel($a->l, $b->l, $weight),
-            c: $this->channel($a->c, $b->c, $weight),
+            l: $channel($a->l, $b->l),
+            c: $channel($a->c, $b->c),
             h: $this->hue($a->h, $b->h, $weight, $hueMethod),
-            a: $this->converter->mixChannel($a->a, $b->a, $weight),
+            a: $alpha,
         );
     }
 
-    public function mixLab(LabColor $a, LabColor $b, float $weight): LabColor
+    public function mixLab(LabColor $a, LabColor $b, float $weight, bool $premultiplied = false): LabColor
     {
+        $alpha   = $this->converter->mixChannel($a->alpha, $b->alpha, $weight);
+        $channel = $this->channelMixer($a->alpha, $b->alpha, $weight, $alpha, $premultiplied);
+
         return new LabColor(
-            l: $this->channel($a->l, $b->l, $weight),
-            a: $this->channel($a->a, $b->a, $weight),
-            b: $this->channel($a->b, $b->b, $weight),
-            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight),
+            l: $channel($a->l, $b->l),
+            a: $channel($a->a, $b->a),
+            b: $channel($a->b, $b->b),
+            alpha: $alpha,
         );
     }
 
-    public function mixLch(LchColor $a, LchColor $b, float $weight, string $hueMethod = 'shorter'): LchColor
-    {
+    public function mixLch(
+        LchColor $a,
+        LchColor $b,
+        float $weight,
+        string $hueMethod = 'shorter',
+        bool $premultiplied = false,
+    ): LchColor {
+        $alpha   = $this->converter->mixChannel($a->alpha, $b->alpha, $weight);
+        $channel = $this->channelMixer($a->alpha, $b->alpha, $weight, $alpha, $premultiplied);
+
         return new LchColor(
-            l: $this->channel($a->l, $b->l, $weight),
-            c: $this->channel($a->c, $b->c, $weight),
+            l: $channel($a->l, $b->l),
+            c: $channel($a->c, $b->c),
             h: $this->hue($a->h, $b->h, $weight, $hueMethod),
-            alpha: $this->converter->mixChannel($a->alpha, $b->alpha, $weight),
+            alpha: $alpha,
         );
+    }
+
+    /**
+     * Builds a channel interpolator bound to the alpha pair of the two colors being mixed.
+     *
+     * @return Closure(?float, ?float): ?float
+     */
+    private function channelMixer(
+        float $alphaA,
+        float $alphaB,
+        float $weight,
+        float $resultAlpha,
+        bool $premultiplied,
+    ): Closure {
+        if (! $premultiplied) {
+            return fn(?float $a, ?float $b): ?float => $this->channel($a, $b, $weight);
+        }
+
+        return static function (?float $a, ?float $b) use ($alphaA, $alphaB, $weight, $resultAlpha): ?float {
+            // CSS Color 4: missing components are carried forward before premultiplication
+            if ($a === null || $b === null) {
+                return $a ?? $b;
+            }
+
+            $mixed = ($a * $alphaA * $weight) + ($b * $alphaB * (1.0 - $weight));
+
+            // CSS Color 4: a zero interpolated alpha leaves the premultiplied value as-is
+            return $resultAlpha > 0.0 ? $mixed / $resultAlpha : $mixed;
+        };
     }
 
     private function channel(?float $a, ?float $b, float $weight): ?float
@@ -140,23 +199,5 @@ final readonly class ColorMixResolver
         $h = fmod($hue, 360.0);
 
         return $h < 0.0 ? $h + 360.0 : $h;
-    }
-
-    private function mixSrgbPremultiplied(RgbColor $a, RgbColor $b, float $weight): RgbColor
-    {
-        $resultAlpha = $this->converter->mixChannel($a->a, $b->a, $weight);
-
-        $rMixed = (($a->r ?? 0.0) * $a->a * $weight) + (($b->r ?? 0.0) * $b->a * (1.0 - $weight));
-        $gMixed = (($a->g ?? 0.0) * $a->a * $weight) + (($b->g ?? 0.0) * $b->a * (1.0 - $weight));
-        $bMixed = (($a->b ?? 0.0) * $a->a * $weight) + (($b->b ?? 0.0) * $b->a * (1.0 - $weight));
-
-        return $resultAlpha > 0.0
-            ? new RgbColor(
-                r: $rMixed / $resultAlpha,
-                g: $gMixed / $resultAlpha,
-                b: $bMixed / $resultAlpha,
-                a: $resultAlpha,
-            )
-            : new RgbColor(r: 0.0, g: 0.0, b: 0.0, a: 0.0);
     }
 }

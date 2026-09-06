@@ -18,6 +18,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Bugo\Iris\Converters\SpaceConverter;
+use Bugo\Iris\Serializers\CssSerializer;
 use Bugo\Iris\SpaceRouter;
 use Bugo\Iris\Spaces\RgbColor;
 use Bugo\Iris\Spaces\XyzColor;
@@ -1488,10 +1489,7 @@ function buildColorSwatch(array $data): ?string
             default => $router->convertToRgba($type, (float) $values[0], (float) $values[1], (float) $values[2], $alpha),
         };
 
-        $r = max(0, min(255, (int) round($rgba->r * 255)));
-        $g = max(0, min(255, (int) round($rgba->g * 255)));
-        $b = max(0, min(255, (int) round($rgba->b * 255)));
-        $hex = sprintf('#%02x%02x%02x', $r, $g, $b);
+        $hex = (new CssSerializer())->toHex($rgba);
 
         return '<span style="display:inline-block;width:0.85em;height:0.85em;background:' . $hex . ';border:1px solid #999;vertical-align:middle" title="' . $hex . '"></span>';
     } catch (Throwable) {

@@ -12,20 +12,22 @@ describe('LiteralSerializer', function (): void {
 
     describe('serialize', function (): void {
         it('serializes named colors when available', function (): void {
-            expect($this->serializer->serialize(new RgbColor(255.0, 255.0, 255.0)))->toBe('white')
+            expect($this->serializer->serialize(new RgbColor(1.0, 1.0, 1.0)))->toBe('white')
                 ->and($this->serializer->serialize(new RgbColor(0.0, 0.0, 0.0)))->toBe('black');
         });
 
         it('serializes rgb colors to hex', function (): void {
-            expect($this->serializer->serialize(new RgbColor(17.0, 34.0, 51.0)))->toBe('#112233');
+            expect($this->serializer->serialize(new RgbColor(17.0 / 255.0, 34.0 / 255.0, 51.0 / 255.0)))
+                ->toBe('#112233');
         });
 
         it('serializes rgba colors to hex with alpha', function (): void {
-            expect($this->serializer->serialize(new RgbColor(17.0, 34.0, 51.0, 0.7)))->toBe('#112233b3');
+            expect($this->serializer->serialize(new RgbColor(17.0 / 255.0, 34.0 / 255.0, 51.0 / 255.0, 0.7)))
+                ->toBe('#112233b3');
         });
 
         it('serializes fully transparent color with alpha byte', function (): void {
-            expect($this->serializer->serialize(new RgbColor(255.0, 0.0, 0.0, 0.0)))->toBe('#ff000000');
+            expect($this->serializer->serialize(new RgbColor(1.0, 0.0, 0.0, 0.0)))->toBe('#ff000000');
         });
 
         it('serializes semi-transparent black correctly', function (): void {
@@ -33,7 +35,12 @@ describe('LiteralSerializer', function (): void {
         });
 
         it('serializes non-named opaque color to hex without alpha', function (): void {
-            expect($this->serializer->serialize(new RgbColor(100.0, 150.0, 200.0)))->toBe('#6496c8');
+            expect($this->serializer->serialize(new RgbColor(100.0 / 255.0, 150.0 / 255.0, 200.0 / 255.0)))
+                ->toBe('#6496c8');
+        });
+
+        it('clamps out-of-range channels before hex encoding', function (): void {
+            expect($this->serializer->serialize(new RgbColor(1.5, -0.5, 0.0)))->toBe('red');
         });
 
         it('serializes color with null channels as zero (resolves to black)', function (): void {

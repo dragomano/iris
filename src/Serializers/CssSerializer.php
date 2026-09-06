@@ -119,7 +119,7 @@ final readonly class CssSerializer
 
     private function serializeOklab(OklabColor $color): string
     {
-        $l = $color->l === null ? 'none' : (string) $color->l;
+        $l = $color->l === null ? 'none' : (string) $color->l . '%';
         $a = $color->a === null ? 'none' : (string) $color->a;
         $b = $color->b === null ? 'none' : (string) $color->b;
 
@@ -132,7 +132,7 @@ final readonly class CssSerializer
 
     private function serializeOklch(OklchColor $color): string
     {
-        $l = $color->l === null ? 'none' : (string) $color->l;
+        $l = $color->l === null ? 'none' : (string) $color->l . '%';
         $c = $color->c === null ? 'none' : (string) $color->c;
         $h = $color->h === null ? 'none' : (string) $color->h;
 

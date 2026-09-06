@@ -25,9 +25,9 @@ final readonly class LiteralParser
             $named = NamedColors::NAMED_RGB[$normalized];
 
             return new RgbColor(
-                r: $named[0],
-                g: $named[1],
-                b: $named[2],
+                r: $named[0] / 255.0,
+                g: $named[1] / 255.0,
+                b: $named[2] / 255.0,
                 a: $named[3] ?? 1.0,
             );
         }
@@ -59,17 +59,17 @@ final readonly class LiteralParser
 
         if ($hexLength === 7) {
             return new RgbColor(
-                r: (float) hexdec($hex[1] . $hex[2]),
-                g: (float) hexdec($hex[3] . $hex[4]),
-                b: (float) hexdec($hex[5] . $hex[6]),
+                r: (float) hexdec($hex[1] . $hex[2]) / 255.0,
+                g: (float) hexdec($hex[3] . $hex[4]) / 255.0,
+                b: (float) hexdec($hex[5] . $hex[6]) / 255.0,
             );
         }
 
         if ($hexLength === 9) {
             return new RgbColor(
-                r: (float) hexdec($hex[1] . $hex[2]),
-                g: (float) hexdec($hex[3] . $hex[4]),
-                b: (float) hexdec($hex[5] . $hex[6]),
+                r: (float) hexdec($hex[1] . $hex[2]) / 255.0,
+                g: (float) hexdec($hex[3] . $hex[4]) / 255.0,
+                b: (float) hexdec($hex[5] . $hex[6]) / 255.0,
                 a: (float) hexdec($hex[7] . $hex[8]) / 255.0,
             );
         }

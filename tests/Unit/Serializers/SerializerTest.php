@@ -351,35 +351,35 @@ describe('Serializer', function (): void {
 
     describe('serialize() - color-mix() function', function (): void {
         it('handles color-mix in srgb', function (): void {
-            expect($this->serializer->serialize('color-mix(in srgb, red, blue)', true))->not->toBeNull();
+            expect($this->serializer->serialize('color-mix(in srgb, red, blue)', true))->toBe('#800080');
         });
 
         it('handles color-mix in oklch', function (): void {
-            expect($this->serializer->serialize('color-mix(in oklch, #ff0000 50%, #0000ff)', true))->not->toBeNull();
+            expect($this->serializer->serialize('color-mix(in oklch, #ff0000 50%, #0000ff)', true))->toBe('#ba00c2');
         });
 
         it('handles color-mix with percentages', function (): void {
-            expect($this->serializer->serialize('color-mix(in srgb, red 70%, blue 30%)', true))->not->toBeNull();
+            expect($this->serializer->serialize('color-mix(in srgb, red 70%, blue 30%)', true))->toBe('#b3004d');
         });
 
         it('handles color-mix in hsl', function (): void {
             expect($this->serializer->serialize('color-mix(in hsl, hsl(0 100% 50%), hsl(120 100% 50%))', true))
-                ->not->toBeNull();
+                ->toBe('#ff0');
         });
 
         it('handles color-mix in oklab', function (): void {
             expect($this->serializer->serialize('color-mix(in oklab, oklab(1 0 0), oklab(0 0 0))', true))
-                ->not->toBeNull();
+                ->toBe('#636363');
         });
 
         it('handles color-mix in lab', function (): void {
             expect($this->serializer->serialize('color-mix(in lab, lab(50% 0 0), lab(0% 0 0))', true))
-                ->not->toBeNull();
+                ->toBe('#3b3b3b');
         });
 
         it('handles color-mix in lch', function (): void {
             expect($this->serializer->serialize('color-mix(in lch, lch(50% 0 0), lch(0% 0 0))', true))
-                ->not->toBeNull();
+                ->toBe('#3b3b3b');
         });
 
         it('handles color-mix with invalid color', function (): void {
@@ -403,22 +403,22 @@ describe('Serializer', function (): void {
         });
 
         it('handles color-mix in srgb-linear', function (): void {
-            expect($this->serializer->serialize('color-mix(in srgb-linear, red, blue)', true))->not->toBeNull();
+            expect($this->serializer->serialize('color-mix(in srgb-linear, red, blue)', true))->toBe('#bc00bc');
         });
 
         it('handles color-mix with both colors having percentages', function (): void {
             expect($this->serializer->serialize('color-mix(in oklch, #ff0000 80%, #0000ff 20%)', true))
-                ->not->toBeNull();
+                ->toBe('#ef006b');
         });
 
         it('handles color-mix with first color percentage only', function (): void {
             expect($this->serializer->serialize('color-mix(in oklch, #ff0000 50%, #0000ff)', true))
-                ->not->toBeNull();
+                ->toBe('#ba00c2');
         });
 
         it('handles color-mix with second color percentage only', function (): void {
             expect($this->serializer->serialize('color-mix(in oklch, #ff0000, #0000ff 50%)', true))
-                ->not->toBeNull();
+                ->toBe('#ba00c2');
         });
     });
 
@@ -556,26 +556,26 @@ describe('Serializer', function (): void {
 
         it('handles color-mix with color() function', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, color(srgb 1 0 0), blue)', true))
-                ->not->toBeNull();
+                ->toBe('#800080');
         });
 
         it('handles color-mix with hex color', function (): void {
-            expect($this->serializer->serialize('color-mix(in srgb, #ff0000, #0000ff)', true))->not->toBeNull();
+            expect($this->serializer->serialize('color-mix(in srgb, #ff0000, #0000ff)', true))->toBe('#800080');
         });
 
         it('handles color-mix with named color and hex', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red, #0000ff)', true))
-                ->not->toBeNull();
+                ->toBe('#800080');
         });
 
         it('handles color-mix with hsl and rgb', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, hsl(0 100% 50%), rgb(0 0 255))', true))
-                ->not->toBeNull();
+                ->toBe('#800080');
         });
 
         it('handles color-mix with oklch and hex', function (): void {
             expect($this->serializer->serialize('color-mix(in oklch, oklch(50% 0.2 180), #ff0000)', true))
-                ->not->toBeNull();
+                ->toBe('#967b00');
         });
 
         it('handles color-mix with lab and oklab', function (): void {
@@ -595,42 +595,42 @@ describe('Serializer', function (): void {
 
         it('handles color-mix with percentage 100', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 100%, blue)', true))
-                ->not->toBeNull();
+                ->toBe('#f00');
         });
 
         it('handles color-mix with percentage 0 for second color', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red, blue 0%)', true))
-                ->not->toBeNull();
+                ->toBe('#f00');
         });
 
         it('handles color-mix with both percentages 100', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 100%, blue 100%)', true))
-                ->not->toBeNull();
+                ->toBe('#800080');
         });
 
         it('handles color-mix with percentage 50 for both', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 50%, blue 50%)', true))
-                ->not->toBeNull();
+                ->toBe('#800080');
         });
 
         it('handles color-mix with percentage 25 and 75', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 25%, blue 75%)', true))
-                ->not->toBeNull();
+                ->toBe('#4000bf');
         });
 
         it('handles color-mix with percentage 75 and 25', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 75%, blue 25%)', true))
-                ->not->toBeNull();
+                ->toBe('#bf0040');
         });
 
         it('handles color-mix with decimal percentage', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 33.33%, blue 66.67%)', true))
-                ->not->toBeNull();
+                ->toBe('#50a');
         });
 
         it('handles color-mix with percentage and decimal', function (): void {
             expect($this->serializer->serialize('color-mix(in srgb, red 50.5%, blue)', true))
-                ->not->toBeNull();
+                ->toBe('#81007e');
         });
 
         it('handles color-mix with negative percentage', function (): void {
@@ -1124,16 +1124,16 @@ describe('Serializer', function (): void {
 
         // parseLabChannel: percentage on a/b channels (index > 0) — requires outputHexColors=true to trigger parsing
         it('converts lab with percentage a/b channels to hex when enabled', function (): void {
-            expect($this->serializer->serialize('lab(50% 100% -50% / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('lab(50% 100% -50% / 0.5)', true))->toBe('#ff00e680');
         });
 
         it('converts oklab with percentage a/b channels to hex when enabled', function (): void {
-            expect($this->serializer->serialize('oklab(50% 100% -50% / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('oklab(50% 100% -50% / 0.5)', true))->toBe('#d900c780');
         });
 
         // calculateMixWeight: both percentages sum to 0 → returns 0.5
         it('color-mix with both 0% percentages returns a result', function (): void {
-            expect($this->serializer->serialize('color-mix(in srgb, red 0%, blue 0%)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in srgb, red 0%, blue 0%)', true))->toBe('#800080');
         });
 
         // parseColorFunction: invalid alpha → null → recognized function → black
@@ -1227,7 +1227,7 @@ describe('Serializer', function (): void {
 
         // parseHslFunction: modern with none hue (parseHue returns null)
         it('hsl with none hue converts with default 0 hue when hex output enabled', function (): void {
-            expect($this->serializer->serialize('hsl(none 50% 50%)', true))->toBeString();
+            expect($this->serializer->serialize('hsl(none 50% 50%)', true))->toBe('#bf4040');
         });
 
         // parsePercent: invalid percent token → black
@@ -1237,19 +1237,19 @@ describe('Serializer', function (): void {
 
         // parseHue: unit variants require outputHexColors=true to run parsing code
         it('hsl with deg hue converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('hsl(180deg 50% 50%)', true))->toBeString();
+            expect($this->serializer->serialize('hsl(180deg 50% 50%)', true))->toBe('#40bfbf');
         });
 
         it('hsl with turn hue converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('hsl(0.5turn 50% 50%)', true))->toBeString();
+            expect($this->serializer->serialize('hsl(0.5turn 50% 50%)', true))->toBe('#40bfbf');
         });
 
         it('hsl with grad hue converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('hsl(200grad 50% 50%)', true))->toBeString();
+            expect($this->serializer->serialize('hsl(200grad 50% 50%)', true))->toBe('#40bfbf');
         });
 
         it('hsl with rad hue converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('hsl(3.14159rad 50% 50%)', true))->toBeString();
+            expect($this->serializer->serialize('hsl(3.14159rad 50% 50%)', true))->toBe('#40bfbf');
         });
 
         // parseColorFunction: wrong channel count → parts null → black
@@ -1276,43 +1276,43 @@ describe('Serializer', function (): void {
 
         // color-mix with named colors — uses no % in color args, properly exercises mix branches
         it('color-mix in hsl with named colors exercises hsl mixing', function (): void {
-            expect($this->serializer->serialize('color-mix(in hsl, red, blue)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in hsl, red, blue)', true))->toBe('#f0f');
         });
 
         it('color-mix in oklab with named colors exercises oklab mixing', function (): void {
-            expect($this->serializer->serialize('color-mix(in oklab, red, blue)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in oklab, red, blue)', true))->toBe('#8c53a2');
         });
 
         it('color-mix in lab with named colors exercises lab mixing', function (): void {
-            expect($this->serializer->serialize('color-mix(in lab, red, blue)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in lab, red, blue)', true))->toBe('#c10088');
         });
 
         it('color-mix in lch with named colors exercises lch mixing', function (): void {
-            expect($this->serializer->serialize('color-mix(in lch, red, blue)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in lch, red, blue)', true))->toBe('#f50086');
         });
 
         // rgbToHsl: max === $g branch (green dominant color)
         it('color-mix in hsl with green dominant color covers max-g hue branch', function (): void {
-            expect($this->serializer->serialize('color-mix(in hsl, rgb(0 255 0), red)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in hsl, rgb(0 255 0), red)', true))->toBe('#ff0');
         });
 
         // rgbToHsl: h < 0 correction (max === $r and $g < $b)
         it('color-mix in hsl with magenta-range color covers h-negative correction', function (): void {
-            expect($this->serializer->serialize('color-mix(in hsl, rgb(255 0 128), red)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in hsl, rgb(255 0 128), red)', true))->toBe('#ff0040');
         });
 
         // rgbToHsl: delta === 0 (achromatic color)
         it('color-mix in hsl with achromatic color covers delta-zero branch', function (): void {
-            expect($this->serializer->serialize('color-mix(in hsl, rgb(128 128 128), red)', true))->toBeString();
+            expect($this->serializer->serialize('color-mix(in hsl, rgb(128 128 128), red)', true))->toBe('#bf4040');
         });
 
         // parseThreeChannelFunction: slash success (lch/oklch with alpha)
         it('lch with slash syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('lch(50% 40 180 / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('lch(50% 40 180 / 0.5)', true))->toBe('#00887580');
         });
 
         it('oklch with slash syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('oklch(0.5 0.2 180 / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('oklch(0.5 0.2 180 / 0.5)', true))->toBe('#00836880');
         });
 
         // parseThreeChannelFunction: slash error paths → black
@@ -1326,11 +1326,11 @@ describe('Serializer', function (): void {
 
         // parseThreeChannelFunction: comma success
         it('lch with comma syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('lch(50%, 40, 180)', true))->toBeString();
+            expect($this->serializer->serialize('lch(50%, 40, 180)', true))->toBe('#008875');
         });
 
         it('oklch with comma syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('oklch(0.5, 0.2, 180)', true))->toBeString();
+            expect($this->serializer->serialize('oklch(0.5, 0.2, 180)', true))->toBe('#008368');
         });
 
         // parseThreeChannelFunction: wrong comma count → black
@@ -1340,11 +1340,11 @@ describe('Serializer', function (): void {
 
         // parseLabOklabFunction: slash success
         it('lab with slash syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('lab(50% 0 0 / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('lab(50% 0 0 / 0.5)', true))->toBe('#77777780');
         });
 
         it('oklab with slash syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('oklab(0.5 0 0 / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('oklab(0.5 0 0 / 0.5)', true))->toBe('#63636380');
         });
 
         // parseLabOklabFunction: slash error paths → black
@@ -1358,11 +1358,11 @@ describe('Serializer', function (): void {
 
         // parseLabOklabFunction: comma success (also covers parseLabChannel parseNumeric fallback)
         it('lab with comma syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('lab(50%, 0, 0)', true))->toBeString();
+            expect($this->serializer->serialize('lab(50%, 0, 0)', true))->toBe('#777');
         });
 
         it('oklab with comma syntax converts to hex when enabled', function (): void {
-            expect($this->serializer->serialize('oklab(0.5, 0, 0)', true))->toBeString();
+            expect($this->serializer->serialize('oklab(0.5, 0, 0)', true))->toBe('#636363');
         });
 
         // parseLabOklabFunction: wrong comma count → black
@@ -1372,12 +1372,12 @@ describe('Serializer', function (): void {
 
         // parseLabChannel: none token
         it('lab with none channel converts with default 0 when hex output enabled', function (): void {
-            expect($this->serializer->serialize('lab(none 0 0 / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('lab(none 0 0 / 0.5)', true))->toBe('#00000080');
         });
 
         // parseLabChannel: invalid percent token
         it('lab with invalid percent channel converts with default 0 when hex output enabled', function (): void {
-            expect($this->serializer->serialize('lab(50% inv% 0 / 0.5)', true))->toBeString();
+            expect($this->serializer->serialize('lab(50% inv% 0 / 0.5)', true))->toBe('#77777780');
         });
 
         // parsePercent: none → 0.0 (missing component in modern syntax)

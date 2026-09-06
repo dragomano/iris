@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bugo\Iris\Serializers;
 
+use Bugo\Iris\Converters\ModelConverter;
 use Bugo\Iris\Converters\SpaceConverter;
 use Bugo\Iris\Encoders\HexEncoder;
 use Bugo\Iris\Encoders\HexNormalizer;
@@ -11,13 +12,11 @@ use Bugo\Iris\LiteralParser;
 use Bugo\Iris\NamedColors;
 use Bugo\Iris\Operations\ColorMixResolver;
 use Bugo\Iris\SpaceRouter;
-use Bugo\Iris\Spaces\HslColor;
 use Bugo\Iris\Spaces\LabColor;
 use Bugo\Iris\Spaces\LchColor;
-use Bugo\Iris\Spaces\OklabColor;
-use Bugo\Iris\Spaces\OklchColor;
 use Bugo\Iris\Spaces\RgbColor;
 use Closure;
+use LogicException;
 
 use function abs;
 use function ctype_space;
@@ -43,6 +42,8 @@ final readonly class Serializer
         private HexEncoder $hexColorEncoder = new HexEncoder(),
         private SpaceConverter $colorSpaceConverter = new SpaceConverter(),
         private SpaceRouter $colorSpaceRouter = new SpaceRouter(),
+        private LiteralParser $literalParser = new LiteralParser(),
+        private ModelConverter $colorModelConverter = new ModelConverter(),
     ) {}
 
     public function serialize(string $value, bool $outputHexColors): string
@@ -198,7 +199,7 @@ final readonly class Serializer
 
     private function parseLabFunction(string $inner): ?RgbColor
     {
-        return $this->parseLabOklabFunction(
+        return $this->parseSpaceChannelFunction(
             $inner,
             fn(float $l, float $a, float $b, float $alpha): RgbColor => $this->labToRgb($l, $a, $b, $alpha),
             'lab',
@@ -207,16 +208,17 @@ final readonly class Serializer
 
     private function parseLchFunction(string $inner): ?RgbColor
     {
-        return $this->parseThreeChannelFunction(
+        return $this->parseSpaceChannelFunction(
             $inner,
             fn(float $l, float $c, float $h, float $alpha): RgbColor => $this->lchToRgb($l, $c, $h, $alpha),
-            fn(string $token): ?float => $this->parseNumeric($token),
+            'lch',
+            true,
         );
     }
 
     private function parseOklabFunction(string $inner): ?RgbColor
     {
-        return $this->parseLabOklabFunction(
+        return $this->parseSpaceChannelFunction(
             $inner,
             fn(float $l, float $a, float $b, float $alpha): RgbColor => $this->oklabToRgb($l, $a, $b, $alpha),
             'oklab',
@@ -225,10 +227,10 @@ final readonly class Serializer
 
     private function parseOklchFunction(string $inner): ?RgbColor
     {
-        return $this->parseThreeChannelFunction(
+        return $this->parseSpaceChannelFunction(
             $inner,
             fn(float $l, float $c, float $h, float $alpha): RgbColor => $this->oklchToRgb($l, $c, $h, $alpha),
-            fn(string $token): ?float => $this->parseNumeric($token),
+            'oklch',
             true,
         );
     }
@@ -302,13 +304,14 @@ final readonly class Serializer
         $resolver = new ColorMixResolver();
 
         return match ($space) {
-            'srgb', 'srgb-linear' => $this->mixInSrgb($resolver, $color1, $color2, $weight),
-            'hsl'                 => $this->mixInHsl($resolver, $color1, $color2, $weight),
-            'oklab'               => $this->mixInOklab($resolver, $color1, $color2, $weight),
-            'oklch'               => $this->mixInOklch($resolver, $color1, $color2, $weight),
-            'lab'                 => $this->mixInLab($resolver, $color1, $color2, $weight),
-            'lch'                 => $this->mixInLch($resolver, $color1, $color2, $weight),
-            default               => null,
+            'srgb'        => $this->mixInSrgb($resolver, $color1, $color2, $weight),
+            'srgb-linear' => $this->mixInSrgbLinear($resolver, $color1, $color2, $weight),
+            'hsl'         => $this->mixInHsl($resolver, $color1, $color2, $weight),
+            'oklab'       => $this->mixInOklab($resolver, $color1, $color2, $weight),
+            'oklch'       => $this->mixInOklch($resolver, $color1, $color2, $weight),
+            'lab'         => $this->mixInLab($resolver, $color1, $color2, $weight),
+            'lch'         => $this->mixInLch($resolver, $color1, $color2, $weight),
+            default       => null,
         };
     }
 
@@ -406,7 +409,7 @@ final readonly class Serializer
 
     /**
      * @param Closure(float, float, float, float): RgbColor $toRgb
-     * @param Closure(string): ?float $channelParser
+     * @param Closure(string, int): ?float $channelParser
      */
     private function parseThreeChannelFunction(
         string $inner,
@@ -427,11 +430,11 @@ final readonly class Serializer
                 return null;
             }
 
-            $c1 = $channelParser($parts[0]) ?? 0.0;
-            $c2 = $channelParser($parts[1]) ?? 0.0;
+            $c1 = $channelParser($parts[0], 0) ?? 0.0;
+            $c2 = $channelParser($parts[1], 1) ?? 0.0;
             $c3 = $parseHueForThird
                 ? $this->parseHue($parts[2]) ?? 0.0
-                : $channelParser($parts[2]) ?? 0.0;
+                : $channelParser($parts[2], 2) ?? 0.0;
 
             return $toRgb($c1, $c2, $c3, $alpha);
         }
@@ -445,11 +448,11 @@ final readonly class Serializer
             }
         }
 
-        $c1 = $channelParser($parts[0]) ?? 0.0;
-        $c2 = $channelParser($parts[1]) ?? 0.0;
+        $c1 = $channelParser($parts[0], 0) ?? 0.0;
+        $c2 = $channelParser($parts[1], 1) ?? 0.0;
         $c3 = $parseHueForThird
             ? $this->parseHue($parts[2]) ?? 0.0
-            : $channelParser($parts[2]) ?? 0.0;
+            : $channelParser($parts[2], 2) ?? 0.0;
 
         return $toRgb($c1, $c2, $c3, 1.0);
     }
@@ -457,24 +460,21 @@ final readonly class Serializer
     /**
      * @param Closure(float, float, float, float): RgbColor $toRgb
      */
-    private function parseLabOklabFunction(string $inner, Closure $toRgb, string $space): ?RgbColor
-    {
-        $channelIndex = 0;
-
+    private function parseSpaceChannelFunction(
+        string $inner,
+        Closure $toRgb,
+        string $space,
+        bool $parseHueForThird = false,
+    ): ?RgbColor {
         return $this->parseThreeChannelFunction(
             $inner,
             $toRgb,
-            function (string $token) use ($space, &$channelIndex): ?float {
-                $result = $this->parseLabChannel($token, $space, $channelIndex);
-
-                $channelIndex++;
-
-                return $result;
-            },
+            fn(string $token, int $channelIndex): ?float => $this->parseSpaceChannel($token, $space, $channelIndex),
+            $parseHueForThird,
         );
     }
 
-    private function parseLabChannel(string $token, string $space, int $channelIndex): ?float
+    private function parseSpaceChannel(string $token, string $space, int $channelIndex): ?float
     {
         if ($token === '' || strtolower($token) === 'none') {
             return null;
@@ -487,20 +487,29 @@ final readonly class Serializer
                 return null;
             }
 
-            if ($channelIndex === 0) {
-                return $number;
-            }
-
-            if ($space === 'lab') {
-                return ($number / 100.0) * 125.0;
-            }
-
-            if ($space === 'oklab') {
-                return ($number / 100.0) * 0.4;
-            }
+            return ($number / 100.0) * $this->percentReference($space, $channelIndex);
         }
 
         return $this->parseNumeric($token);
+    }
+
+    private function percentReference(string $space, int $channelIndex): float
+    {
+        // CSS Color 4 percentage reference ranges per color function and channel
+        if ($channelIndex === 0) {
+            return match ($space) {
+                'lab', 'lch'     => 100.0,
+                'oklab', 'oklch' => 1.0,
+                default          => throw new LogicException('Unsupported color space: ' . $space),
+            };
+        }
+
+        return match ($space) {
+            'lab'            => 125.0,
+            'lch'            => 150.0,
+            'oklab', 'oklch' => 0.4,
+            default          => throw new LogicException('Unsupported color space: ' . $space),
+        };
     }
 
     /**
@@ -509,10 +518,10 @@ final readonly class Serializer
     private function parseColorWithPercentage(string $colorStr): array
     {
         $colorStr   = trim($colorStr);
-        $percentPos = strrpos($colorStr, '%');
+        $percentPos = $this->findWeightPercentPosition($colorStr);
         $percentage = null;
 
-        if ($percentPos !== false) {
+        if ($percentPos !== null) {
             $numStart = $percentPos - 1;
             while ($numStart >= 0 && (ctype_digit($colorStr[$numStart]) || $colorStr[$numStart] === '.')) {
                 $numStart--;
@@ -530,24 +539,44 @@ final readonly class Serializer
         return [$color, $percentage];
     }
 
+    /**
+     * Locates the mix weight percentage, ignoring percentages nested inside a color function.
+     */
+    private function findWeightPercentPosition(string $value): ?int
+    {
+        $depth    = 0;
+        $position = null;
+        $length   = strlen($value);
+
+        for ($i = 0; $i < $length; $i++) {
+            $char = $value[$i];
+
+            if ($char === '(') {
+                $depth++;
+
+                continue;
+            }
+
+            if ($char === ')') {
+                $depth--;
+
+                continue;
+            }
+
+            if ($char === '%' && $depth === 0) {
+                $position = $i;
+            }
+        }
+
+        return $position;
+    }
+
     private function parseColorString(string $colorStr): ?RgbColor
     {
         $colorStr = trim($colorStr);
 
-        if (str_starts_with($colorStr, '#')) {
-            return (new LiteralParser())->toRgb($colorStr);
-        }
-
-        $lower = strtolower($colorStr);
-        if (array_key_exists($lower, NamedColors::NAMED_RGB)) {
-            $named = NamedColors::NAMED_RGB[$lower];
-
-            return new RgbColor(
-                r: $named[0] / 255.0,
-                g: $named[1] / 255.0,
-                b: $named[2] / 255.0,
-                a: $named[3] ?? 1.0,
-            );
+        if (str_starts_with($colorStr, '#') || NamedColors::isNamedColor(strtolower($colorStr))) {
+            return $this->literalParser->toRgb($colorStr);
         }
 
         return $this->convertSupportedFunctionalColorToRgb($colorStr);
@@ -581,7 +610,38 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight,
     ): RgbColor {
-        return $resolver->mixSrgb($color1, $color2, $weight);
+        return $resolver->mixSrgb($color1, $color2, $weight, premultiplied: true);
+    }
+
+    private function mixInSrgbLinear(
+        ColorMixResolver $resolver,
+        RgbColor $color1,
+        RgbColor $color2,
+        float $weight,
+    ): RgbColor {
+        $mixed = $resolver->mixSrgb(
+            $this->toLinearSrgb($color1),
+            $this->toLinearSrgb($color2),
+            $weight,
+            premultiplied: true,
+        );
+
+        return $this->colorSpaceConverter->linSrgbChannelsToRgb(
+            $mixed->rValue(),
+            $mixed->gValue(),
+            $mixed->bValue(),
+            $mixed->a,
+        );
+    }
+
+    private function toLinearSrgb(RgbColor $rgb): RgbColor
+    {
+        return new RgbColor(
+            r: $this->colorSpaceConverter->linSrgb($rgb->r),
+            g: $this->colorSpaceConverter->linSrgb($rgb->g),
+            b: $this->colorSpaceConverter->linSrgb($rgb->b),
+            a: $rgb->a,
+        );
     }
 
     private function mixInHsl(
@@ -590,12 +650,12 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight,
     ): RgbColor {
-        $hsl1 = $this->rgbToHsl($color1);
-        $hsl2 = $this->rgbToHsl($color2);
+        $hsl1 = $this->colorModelConverter->rgbToHslColor($color1);
+        $hsl2 = $this->colorModelConverter->rgbToHslColor($color2);
 
-        $mixed = $resolver->mixHsl($hsl1, $hsl2, $weight);
+        $mixed = $resolver->mixHsl($hsl1, $hsl2, $weight, premultiplied: true);
 
-        return $this->hslToRgb($mixed);
+        return $this->colorModelConverter->hslToRgbColor($mixed);
     }
 
     private function mixInOklab(
@@ -604,33 +664,14 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight,
     ): RgbColor {
-        $oklab1 = $this->colorSpaceConverter->normalizedChannelsToOklch($color1);
-        $oklab2 = $this->colorSpaceConverter->normalizedChannelsToOklch($color2);
-
-        $oklabColor1 = new OklabColor(
-            l: $oklab1->l,
-            a: ($oklab1->c ?? 0.0) * cos((($oklab1->h ?? 0.0) * M_PI) / 180.0),
-            b: ($oklab1->c ?? 0.0) * sin((($oklab1->h ?? 0.0) * M_PI) / 180.0),
-            alpha: $color1->a,
+        $mixed = $resolver->mixOklab(
+            $this->colorSpaceConverter->rgbToOklab($color1),
+            $this->colorSpaceConverter->rgbToOklab($color2),
+            $weight,
+            premultiplied: true,
         );
 
-        $oklabColor2 = new OklabColor(
-            l: $oklab2->l,
-            a: ($oklab2->c ?? 0.0) * cos((($oklab2->h ?? 0.0) * M_PI) / 180.0),
-            b: ($oklab2->c ?? 0.0) * sin((($oklab2->h ?? 0.0) * M_PI) / 180.0),
-            alpha: $color2->a,
-        );
-
-        $mixed = $resolver->mixOklab($oklabColor1, $oklabColor2, $weight);
-
-        $rgb = $this->colorSpaceConverter->oklabChannelsToRgb($mixed->l ?? 0.0, $mixed->a ?? 0.0, $mixed->b ?? 0.0, 1.0);
-
-        return new RgbColor(
-            r: $rgb->rValue(),
-            g: $rgb->gValue(),
-            b: $rgb->bValue(),
-            a: $mixed->alpha,
-        );
+        return $this->colorSpaceConverter->oklabToRgb($mixed);
     }
 
     private function mixInOklch(
@@ -639,17 +680,14 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight,
     ): RgbColor {
-        $oklch1 = $this->colorSpaceConverter->normalizedChannelsToOklch($color1);
-        $oklch2 = $this->colorSpaceConverter->normalizedChannelsToOklch($color2);
+        $mixed = $resolver->mixOklch(
+            $this->colorSpaceConverter->rgbToOklch($color1),
+            $this->colorSpaceConverter->rgbToOklch($color2),
+            $weight,
+            premultiplied: true,
+        );
 
-        $oklchColor1 = new OklchColor(l: $oklch1->l, c: $oklch1->c, h: $oklch1->h, a: $color1->a);
-        $oklchColor2 = new OklchColor(l: $oklch2->l, c: $oklch2->c, h: $oklch2->h, a: $color2->a);
-
-        $mixed = $resolver->mixOklch($oklchColor1, $oklchColor2, $weight);
-
-        $rgb = $this->colorSpaceConverter->oklchToRgb($mixed);
-
-        return new RgbColor(r: $rgb->r, g: $rgb->g, b: $rgb->b, a: $mixed->a);
+        return $this->colorSpaceConverter->oklchToRgb($mixed);
     }
 
     private function mixInLab(
@@ -658,12 +696,14 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight,
     ): RgbColor {
-        $lab1 = $this->rgbToLab($color1);
-        $lab2 = $this->rgbToLab($color2);
+        $mixed = $resolver->mixLab(
+            $this->rgbToLab($color1),
+            $this->rgbToLab($color2),
+            $weight,
+            premultiplied: true,
+        );
 
-        $mixed = $resolver->mixLab($lab1, $lab2, $weight);
-
-        return $this->labToRgb($mixed->l ?? 0.0, $mixed->a ?? 0.0, $mixed->b ?? 0.0, $mixed->alpha);
+        return $this->labToRgb($mixed->lValue(), $mixed->aValue(), $mixed->bValue(), $mixed->alpha);
     }
 
     private function mixInLch(
@@ -672,57 +712,14 @@ final readonly class Serializer
         RgbColor $color2,
         float $weight,
     ): RgbColor {
-        $lch1 = $this->rgbToLch($color1);
-        $lch2 = $this->rgbToLch($color2);
-
-        $mixed = $resolver->mixLch($lch1, $lch2, $weight);
+        $mixed = $resolver->mixLch(
+            $this->rgbToLch($color1),
+            $this->rgbToLch($color2),
+            $weight,
+            premultiplied: true,
+        );
 
         return $this->lchToRgb($mixed->l ?? 0.0, $mixed->c ?? 0.0, $mixed->h ?? 0.0, $mixed->alpha);
-    }
-
-    private function rgbToHsl(RgbColor $rgb): HslColor
-    {
-        $r = $rgb->r ?? 0.0;
-        $g = $rgb->g ?? 0.0;
-        $b = $rgb->b ?? 0.0;
-
-        $max   = max($r, $g, $b);
-        $min   = min($r, $g, $b);
-        $delta = $max - $min;
-
-        $l = ($max + $min) / 2.0;
-
-        if ($delta === 0.0) {
-            $h = 0.0;
-            $s = 0.0;
-        } else {
-            $s = $delta / (1.0 - abs((2.0 * $l) - 1.0));
-
-            if ($max === $r) {
-                $h = 60.0 * fmod(($g - $b) / $delta, 6.0);
-            } elseif ($max === $g) {
-                $h = 60.0 * ((($b - $r) / $delta) + 2.0);
-            } else {
-                $h = 60.0 * ((($r - $g) / $delta) + 4.0);
-            }
-
-            if ($h < 0.0) {
-                $h += 360.0;
-            }
-        }
-
-        return new HslColor(h: $h, s: $s * 100.0, l: $l * 100.0, a: $rgb->a);
-    }
-
-    private function hslToRgb(HslColor $hsl): RgbColor
-    {
-        $h = $hsl->h ?? 0.0;
-        $s = ($hsl->s ?? 0.0) / 100.0;
-        $l = ($hsl->l ?? 0.0) / 100.0;
-
-        [$r, $g, $b] = $this->colorSpaceConverter->hslToRgb($h, $s, $l);
-
-        return new RgbColor(r: $r, g: $g, b: $b, a: $hsl->a);
     }
 
     private function rgbToLab(RgbColor $rgb): LabColor

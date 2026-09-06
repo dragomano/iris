@@ -38,9 +38,9 @@ final readonly class LegacyManipulator
         $b = $color->b ?? 0.0;
 
         return new RgbColor(
-            r: $this->colorSpaceConverter->mixChannel($r, 255.0 - $r, 1.0 - $weight),
-            g: $this->colorSpaceConverter->mixChannel($g, 255.0 - $g, 1.0 - $weight),
-            b: $this->colorSpaceConverter->mixChannel($b, 255.0 - $b, 1.0 - $weight),
+            r: $this->colorSpaceConverter->mixChannel($r, 1.0 - $r, 1.0 - $weight),
+            g: $this->colorSpaceConverter->mixChannel($g, 1.0 - $g, 1.0 - $weight),
+            b: $this->colorSpaceConverter->mixChannel($b, 1.0 - $b, 1.0 - $weight),
             a: $color->a,
         );
     }
@@ -50,9 +50,9 @@ final readonly class LegacyManipulator
      */
     public function scale(RgbColor $rgb, HslColor $hsl, array $scales): RgbColor
     {
-        $newRed        = $this->scaleChannel($rgb->r ?? 0.0, $scales['red'] ?? null, 255.0);
-        $newGreen      = $this->scaleChannel($rgb->g ?? 0.0, $scales['green'] ?? null, 255.0);
-        $newBlue       = $this->scaleChannel($rgb->b ?? 0.0, $scales['blue'] ?? null, 255.0);
+        $newRed        = $this->scaleChannel($rgb->r ?? 0.0, $scales['red'] ?? null, 1.0);
+        $newGreen      = $this->scaleChannel($rgb->g ?? 0.0, $scales['green'] ?? null, 1.0);
+        $newBlue       = $this->scaleChannel($rgb->b ?? 0.0, $scales['blue'] ?? null, 1.0);
         $newAlpha      = $this->scaleChannel($rgb->a, $scales['alpha'] ?? null, 1.0);
         $newSaturation = $this->scaleChannel($hsl->s ?? 0.0, $scales['saturation'] ?? null, 100.0);
         $newLightness  = $this->scaleChannel($hsl->l ?? 0.0, $scales['lightness'] ?? null, 100.0);
@@ -183,9 +183,9 @@ final readonly class LegacyManipulator
      */
     private function modify(RgbColor $rgb, HslColor $hsl, array $values, callable $modify): RgbColor
     {
-        $newRed        = $this->modifyNumberChannel($rgb->r ?? 0.0, $values['red'] ?? null, $modify, 255.0);
-        $newGreen      = $this->modifyNumberChannel($rgb->g ?? 0.0, $values['green'] ?? null, $modify, 255.0);
-        $newBlue       = $this->modifyNumberChannel($rgb->b ?? 0.0, $values['blue'] ?? null, $modify, 255.0);
+        $newRed        = $this->modifyNumberChannel($rgb->r ?? 0.0, $values['red'] ?? null, $modify, 1.0);
+        $newGreen      = $this->modifyNumberChannel($rgb->g ?? 0.0, $values['green'] ?? null, $modify, 1.0);
+        $newBlue       = $this->modifyNumberChannel($rgb->b ?? 0.0, $values['blue'] ?? null, $modify, 1.0);
         $newAlpha      = $this->modifyNumberChannel($rgb->a, $values['alpha'] ?? null, $modify, 1.0);
         $newHue        = $this->modifyHueChannel($hsl->h ?? 0.0, $values['hue'] ?? null, $modify);
         $newSaturation = $this->modifyPercentageChannel($hsl->s ?? 0.0, $values['saturation'] ?? null, $modify);

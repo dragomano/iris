@@ -16,7 +16,7 @@ describe('perceptual pipeline', function (): void {
     });
 
     it('converts rgb to oklch, adjusts it and serializes to CSS', function (): void {
-        $rgb = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 1.0);
+        $rgb = new RgbColor(r: 1.0, g: 128.0 / 255.0, b: 0.0, a: 1.0);
         $oklch = $this->converter->rgbToOklch($rgb);
         $adjusted = $this->manipulator->adjustOklch($oklch, [
             'lightness' => 5.0,
@@ -26,7 +26,7 @@ describe('perceptual pipeline', function (): void {
         ]);
 
         expect($this->serializer->toCss($adjusted))
-            ->toBe('oklch(78.189484719883 0.16580319653171 67.984673920234 / 0.75)');
+            ->toBe('oklch(78.189484719883% 0.16580319653171 67.984673920234 / 0.75)');
     });
 
     it('changes lab values and keeps them serializable as CSS', function (): void {

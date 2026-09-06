@@ -54,7 +54,7 @@ describe('HexNormalizer', function (): void {
 
         it('normalizes 4-char hex #f00f', function (): void {
             $result = $this->normalizer->normalize('#f00f');
-            expect($result)->not->toBeNull();
+            expect($result)->toBe('#f00f');
         });
     });
 

@@ -104,31 +104,31 @@ describe('CssSerializer', function (): void {
         });
 
         it('converts OklabColor to css string', function (): void {
-            $oklab = new OklabColor(l: 0.6, a: 0.1, b: -0.05, alpha: 1.0);
+            $oklab = new OklabColor(l: 60.0, a: 0.1, b: -0.05, alpha: 1.0);
             $result = $this->serializer->toCss($oklab);
 
-            expect($result)->toBe('oklab(0.6 0.1 -0.05)');
+            expect($result)->toBe('oklab(60% 0.1 -0.05)');
         });
 
         it('converts OklabColor with alpha to css string', function (): void {
-            $oklab = new OklabColor(l: 0.6, a: 0.1, b: -0.05, alpha: 0.75);
+            $oklab = new OklabColor(l: 60.0, a: 0.1, b: -0.05, alpha: 0.75);
             $result = $this->serializer->toCss($oklab);
 
-            expect($result)->toBe('oklab(0.6 0.1 -0.05 / 0.75)');
+            expect($result)->toBe('oklab(60% 0.1 -0.05 / 0.75)');
         });
 
         it('converts OklchColor to css string', function (): void {
             $oklch = new OklchColor(l: 75.0, c: 0.15, h: 30.0, a: 1.0);
             $result = $this->serializer->toCss($oklch);
 
-            expect($result)->toBe('oklch(75 0.15 30)');
+            expect($result)->toBe('oklch(75% 0.15 30)');
         });
 
         it('converts OklchColor with alpha to css string', function (): void {
             $oklch = new OklchColor(l: 75.0, c: 0.15, h: 30.0, a: 0.6);
             $result = $this->serializer->toCss($oklch);
 
-            expect($result)->toBe('oklch(75 0.15 30 / 0.60)');
+            expect($result)->toBe('oklch(75% 0.15 30 / 0.60)');
         });
 
         it('converts XyzColor to css string', function (): void {
@@ -287,31 +287,31 @@ describe('CssSerializer', function (): void {
         });
 
         it('formats OklabColor without alpha', function (): void {
-            $oklab = new OklabColor(l: 1.0, a: 0.0, b: 0.0, alpha: 1.0);
+            $oklab = new OklabColor(l: 100.0, a: 0.0, b: 0.0, alpha: 1.0);
             $result = $this->serializer->toCss($oklab);
 
-            expect($result)->toBe('oklab(1 0 0)');
+            expect($result)->toBe('oklab(100% 0 0)');
         });
 
         it('formats OklabColor with alpha', function (): void {
-            $oklab = new OklabColor(l: 1.0, a: 0.0, b: 0.0, alpha: 0.4);
+            $oklab = new OklabColor(l: 100.0, a: 0.0, b: 0.0, alpha: 0.4);
             $result = $this->serializer->toCss($oklab);
 
-            expect($result)->toBe('oklab(1 0 0 / 0.40)');
+            expect($result)->toBe('oklab(100% 0 0 / 0.40)');
         });
 
         it('formats OklchColor without alpha', function (): void {
             $oklch = new OklchColor(l: 100.0, c: 0.0, h: 0.0, a: 1.0);
             $result = $this->serializer->toCss($oklch);
 
-            expect($result)->toBe('oklch(100 0 0)');
+            expect($result)->toBe('oklch(100% 0 0)');
         });
 
         it('formats OklchColor with alpha', function (): void {
             $oklch = new OklchColor(l: 100.0, c: 0.0, h: 0.0, a: 0.3);
             $result = $this->serializer->toCss($oklch);
 
-            expect($result)->toBe('oklch(100 0 0 / 0.30)');
+            expect($result)->toBe('oklch(100% 0 0 / 0.30)');
         });
 
         it('formats XyzColor', function (): void {

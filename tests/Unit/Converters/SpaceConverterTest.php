@@ -50,7 +50,7 @@ describe('SpaceConverter', function (): void {
         });
 
         it('converts green(128) hsl(120, 100%, 25.098%) approximately', function (): void {
-            // rgb(0,128,0) => normalized (0, 0.502, 0) => hsl(120, 100%, 25.1%)
+            // normalized (0, 0.502, 0) => hsl(120, 100%, 25.1%)
             [$r, $g, $b] = $this->converter->hslToRgb(120.0, 1.0, 128.0 / 510.0);
 
             expect(round($r, 2))->toBe(0.0)
@@ -61,8 +61,8 @@ describe('SpaceConverter', function (): void {
     });
 
     describe('rgbToOklch', function (): void {
-        it('converts rgb(255,0,0) to oklch with expected lightness, chroma, hue', function (): void {
-            $rgb   = new RgbColor(255.0, 0.0, 0.0, 1.0);
+        it('converts red to oklch with expected lightness, chroma, hue', function (): void {
+            $rgb   = new RgbColor(1.0, 0.0, 0.0, 1.0);
             $oklch = $this->converter->rgbToOklch($rgb);
 
             // Expected: l≈62.79, c≈0.2576, h≈29.23
@@ -74,8 +74,8 @@ describe('SpaceConverter', function (): void {
                 ->and(round($oklch->h, 1))->toBeLessThan(31.0);
         });
 
-        it('converts rgb(0,255,0) to oklch with high lightness and green hue', function (): void {
-            $rgb   = new RgbColor(0.0, 255.0, 0.0, 1.0);
+        it('converts green to oklch with high lightness and green hue', function (): void {
+            $rgb   = new RgbColor(0.0, 1.0, 0.0, 1.0);
             $oklch = $this->converter->rgbToOklch($rgb);
 
             expect($oklch->l)->toBeGreaterThan(80.0)
@@ -83,15 +83,15 @@ describe('SpaceConverter', function (): void {
                 ->and($oklch->h)->toBeLessThan(150.0);
         });
 
-        it('converts rgb(0,0,0) to oklch with near-zero lightness', function (): void {
+        it('converts black to oklch with near-zero lightness', function (): void {
             $rgb   = new RgbColor(0.0, 0.0, 0.0, 1.0);
             $oklch = $this->converter->rgbToOklch($rgb);
 
             expect(round($oklch->l, 4))->toBe(0.0);
         });
 
-        it('converts rgb(255,255,255) to oklch with 100 lightness', function (): void {
-            $rgb   = new RgbColor(255.0, 255.0, 255.0, 1.0);
+        it('converts white to oklch with 100 lightness', function (): void {
+            $rgb   = new RgbColor(1.0, 1.0, 1.0, 1.0);
             $oklch = $this->converter->rgbToOklch($rgb);
 
             expect(round($oklch->l, 2))->toBe(100.0);
@@ -99,11 +99,11 @@ describe('SpaceConverter', function (): void {
     });
 
     describe('oklchToSrgb', function (): void {
-        it('round-trip rgb(255,0,0) → oklch → rgb stays close to original', function (): void {
-            $original = new RgbColor(255.0, 0.0, 0.0, 1.0);
+        it('round-trip red → oklch → rgb stays close to original', function (): void {
+            $original = new RgbColor(1.0, 0.0, 0.0, 1.0);
             $oklch    = $this->converter->rgbToOklch($original);
 
-            // oklchToSrgb returns 0-1 scale
+            // RgbColor channels are always normalized to 0..1
             $restored = $this->converter->oklchToSrgb($oklch);
 
             expect(round($restored->r, 2))->toBe(1.0)
@@ -111,8 +111,8 @@ describe('SpaceConverter', function (): void {
                 ->and(round($restored->b, 2))->toBe(0.0);
         });
 
-        it('round-trip rgb(0,128,0) → oklch → rgb stays close to original', function (): void {
-            $original = new RgbColor(0.0, 128.0, 0.0, 1.0);
+        it('round-trip mid green → oklch → rgb stays close to original', function (): void {
+            $original = new RgbColor(0.0, 128.0 / 255.0, 0.0, 1.0);
             $oklch    = $this->converter->rgbToOklch($original);
             $restored = $this->converter->oklchToSrgb($oklch);
 
@@ -238,7 +238,7 @@ describe('SpaceConverter', function (): void {
 
     describe('oklchToSrgb() additional', function (): void {
         it('round-trip white stays white', function (): void {
-            $rgb    = new RgbColor(r: 255.0, g: 255.0, b: 255.0, a: 1.0);
+            $rgb    = new RgbColor(r: 1.0, g: 1.0, b: 1.0, a: 1.0);
             $oklch  = $this->converter->rgbToOklch($rgb);
             $result = $this->converter->oklchToSrgb($oklch);
 
@@ -366,7 +366,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToXyzD50', function (): void {
         it('converts rgb to xyz d50', function (): void {
-            $rgb = new RgbColor(255.0, 0.0, 0.0, 1.0);
+            $rgb = new RgbColor(1.0, 0.0, 0.0, 1.0);
             $xyz = $this->converter->rgbToXyzD50($rgb);
 
             expect($xyz->x)->toBeGreaterThan(0.4);
@@ -548,7 +548,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToDisplayP3', function (): void {
         it('converts rgb to display-p3', function (): void {
-            $rgb = new RgbColor(255.0, 0.0, 0.0, 1.0);
+            $rgb = new RgbColor(1.0, 0.0, 0.0, 1.0);
 
             [$r, ,] = $this->converter->rgbToDisplayP3($rgb);
 
@@ -622,7 +622,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToA98Rgb', function (): void {
         it('converts rgb to a98-rgb', function (): void {
-            $rgb = new RgbColor(255.0, 0.0, 0.0, 1.0);
+            $rgb = new RgbColor(1.0, 0.0, 0.0, 1.0);
 
             [$r, ,] = $this->converter->rgbToA98Rgb($rgb);
 
@@ -642,7 +642,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToProphotoRgb', function (): void {
         it('converts rgb to prophoto-rgb', function (): void {
-            $rgb = new RgbColor(255.0, 0.0, 0.0, 1.0);
+            $rgb = new RgbColor(1.0, 0.0, 0.0, 1.0);
 
             [$r, ,] = $this->converter->rgbToProphotoRgb($rgb);
 
@@ -652,7 +652,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToRec2020', function (): void {
         it('converts rgb to rec2020', function (): void {
-            $rgb = new RgbColor(255.0, 0.0, 0.0, 1.0);
+            $rgb = new RgbColor(1.0, 0.0, 0.0, 1.0);
 
             [$r, ,] = $this->converter->rgbToRec2020($rgb);
 
@@ -682,7 +682,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToLch', function (): void {
         it('converts rgb to lch', function (): void {
-            $rgb = new RgbColor(255.0, 0.0, 0.0, 1.0);
+            $rgb = new RgbColor(1.0, 0.0, 0.0, 1.0);
 
             $lch = $this->converter->rgbToLch($rgb);
 
@@ -690,7 +690,7 @@ describe('SpaceConverter', function (): void {
         });
 
         it('returns achromatic lch for gray', function (): void {
-            $rgb = new RgbColor(128.0, 128.0, 128.0, 1.0);
+            $rgb = new RgbColor(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 1.0);
 
             $lch = $this->converter->rgbToLch($rgb);
 
@@ -710,7 +710,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToOklch with clampChannels=false - additional', function (): void {
         it('covers oklabComponentsToOklch with negative hue', function (): void {
-            $rgb = new RgbColor(0.0, 0.0, 255.0, 1.0);
+            $rgb = new RgbColor(0.0, 0.0, 1.0, 1.0);
 
             $oklch = $this->converter->normalizedSrgbToOklch($rgb, false);
 
@@ -767,8 +767,8 @@ describe('SpaceConverter', function (): void {
 
     describe('calculateDeltaE', function (): void {
         it('calculates delta e between two colors', function (): void {
-            $rgb1 = new RgbColor(255.0, 0.0, 0.0, 1.0);
-            $rgb2 = new RgbColor(0.0, 255.0, 0.0, 1.0);
+            $rgb1 = new RgbColor(1.0, 0.0, 0.0, 1.0);
+            $rgb2 = new RgbColor(0.0, 1.0, 0.0, 1.0);
 
             $deltaE = $this->converter->calculateDeltaE($rgb1, $rgb2);
 
@@ -776,7 +776,7 @@ describe('SpaceConverter', function (): void {
         });
 
         it('returns 0 for same colors', function (): void {
-            $rgb = new RgbColor(128.0, 128.0, 128.0, 1.0);
+            $rgb = new RgbColor(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 1.0);
 
             $deltaE = $this->converter->calculateDeltaE($rgb, $rgb);
 
@@ -978,8 +978,8 @@ describe('SpaceConverter', function (): void {
     });
 
     describe('rgbToLab', function (): void {
-        it('converts rgb(255,0,0) to LabColor while preserving alpha', function (): void {
-            $lab = $this->converter->rgbToLab(new RgbColor(255.0, 0.0, 0.0, 1.0));
+        it('converts red to LabColor while preserving alpha', function (): void {
+            $lab = $this->converter->rgbToLab(new RgbColor(1.0, 0.0, 0.0, 1.0));
 
             expect($lab)->toBeInstanceOf(LabColor::class)
                 ->and($lab->l)->toBeCloseTo(54.290541, 4)
@@ -989,7 +989,7 @@ describe('SpaceConverter', function (): void {
         });
 
         it('round-trips through labToRgb back to the original normalized channels', function (): void {
-            $original  = new RgbColor(200.0, 60.0, 90.0, 1.0);
+            $original  = new RgbColor(200.0 / 255.0, 60.0 / 255.0, 90.0 / 255.0, 1.0);
             $roundtrip = $this->converter->labToRgb($this->converter->rgbToLab($original));
 
             expect($roundtrip->r)->toBeCloseTo(200.0 / 255.0, 4)
@@ -1010,8 +1010,8 @@ describe('SpaceConverter', function (): void {
     });
 
     describe('rgbToOklab', function (): void {
-        it('converts rgb(255,0,0) to OklabColor while preserving alpha', function (): void {
-            $oklab = $this->converter->rgbToOklab(new RgbColor(255.0, 0.0, 0.0, 0.8));
+        it('converts red to OklabColor while preserving alpha', function (): void {
+            $oklab = $this->converter->rgbToOklab(new RgbColor(1.0, 0.0, 0.0, 0.8));
 
             expect($oklab)->toBeInstanceOf(OklabColor::class)
                 ->and($oklab->l)->toBeCloseTo(62.795536, 4)
@@ -1021,7 +1021,7 @@ describe('SpaceConverter', function (): void {
         });
 
         it('round-trips through oklabToRgb back to the original normalized channels', function (): void {
-            $original  = new RgbColor(200.0, 60.0, 90.0, 1.0);
+            $original  = new RgbColor(200.0 / 255.0, 60.0 / 255.0, 90.0 / 255.0, 1.0);
             $roundtrip = $this->converter->oklabToRgb($this->converter->rgbToOklab($original));
 
             expect($roundtrip->r)->toBeCloseTo(200.0 / 255.0, 4)
@@ -1093,7 +1093,7 @@ describe('SpaceConverter', function (): void {
 
     describe('rgbToXyzD65', function (): void {
         it('converts rgb white to xyz d65 white', function (): void {
-            $rgb = new RgbColor(255.0, 255.0, 255.0, 1.0);
+            $rgb = new RgbColor(1.0, 1.0, 1.0, 1.0);
             $xyz = $this->converter->rgbToXyzD65($rgb);
 
             expect($xyz->x)->toBeCloseTo(0.9505, 0.1)
@@ -1371,6 +1371,21 @@ describe('SpaceConverter', function (): void {
 
             expect(round($clamped->l, 4))->toBe(0.0)
                 ->and(round($unclamped->l, 4))->toBe(0.0);
+        });
+    });
+
+    describe('normalizedChannelsToOklch', function (): void {
+        it('is an alias of rgbToOklch', function (): void {
+            $rgb = new RgbColor(1.0, 0.5, 0.0, 0.5);
+
+            $alias    = $this->converter->normalizedChannelsToOklch($rgb);
+            $expected = $this->converter->rgbToOklch($rgb);
+
+            expect($alias)->toBeInstanceOf(OklchColor::class)
+                ->and($alias->l)->toBe($expected->l)
+                ->and($alias->c)->toBe($expected->c)
+                ->and($alias->h)->toBe($expected->h)
+                ->and($alias->a)->toBe($expected->a);
         });
     });
 });

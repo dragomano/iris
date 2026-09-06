@@ -14,7 +14,7 @@ use Bugo\Iris\Spaces\XyzColor;
 
 describe('ColorValueInterface implementation', function (): void {
     it('RgbColor implements ColorValueInterface', function (): void {
-        $color = new RgbColor(255.0, 128.0, 0.0, 1.0);
+        $color = new RgbColor(1.0, 0.5, 0.0, 1.0);
 
         expect($color)->toBeInstanceOf(ColorValueInterface::class)
             ->and($color->getSpace())->toBe('rgb')
@@ -94,13 +94,13 @@ describe('ColorValueInterface implementation', function (): void {
     });
 
     it('RgbColor channels contain correct values', function (): void {
-        $color = new RgbColor(255.0, 128.0, 64.0, 0.5);
+        $color = new RgbColor(1.0, 0.5, 0.25, 0.5);
 
         [$r, $g, $b] = $color->getChannels();
 
-        expect($r)->toBe(255.0)
-            ->and($g)->toBe(128.0)
-            ->and($b)->toBe(64.0)
+        expect($r)->toBe(1.0)
+            ->and($g)->toBe(0.5)
+            ->and($b)->toBe(0.25)
             ->and($color->getAlpha())->toBe(0.5);
     });
 

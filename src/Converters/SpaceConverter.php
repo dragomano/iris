@@ -57,6 +57,9 @@ final readonly class SpaceConverter
     // @pest-mutate-ignore
     private const ACHROMATIC_CHROMA_EPSILON = 1e-6;
 
+    // @pest-mutate-ignore
+    private const ACHROMATIC_CHANNEL_EPSILON = 1e-9;
+
     private const M_LIN_SRGB_TO_XYZ = [
         [0.41239079926595951,  0.35758433938387796, 0.18048078840183429],
         [0.21263900587151036,  0.71516867876775592, 0.072192315360733714],
@@ -351,11 +354,7 @@ final readonly class SpaceConverter
 
     public function rgbToXyzD65(RgbColor $rgb): XyzColor
     {
-        return $this->srgbToXyzD65(
-            ($rgb->r ?? 0.0) / 255.0,
-            ($rgb->g ?? 0.0) / 255.0,
-            ($rgb->b ?? 0.0) / 255.0,
-        );
+        return $this->srgbToXyzD65($rgb->r ?? 0.0, $rgb->g ?? 0.0, $rgb->b ?? 0.0);
     }
 
     public function rgbToXyzD50(RgbColor $rgb): XyzColor
@@ -810,9 +809,9 @@ final readonly class SpaceConverter
      */
     public function rgbToOklabChannels(RgbColor $rgb): array
     {
-        $r = $this->linSrgb(($rgb->r ?? 0.0) / 255.0);
-        $g = $this->linSrgb(($rgb->g ?? 0.0) / 255.0);
-        $b = $this->linSrgb(($rgb->b ?? 0.0) / 255.0);
+        $r = $this->linSrgb($rgb->r ?? 0.0);
+        $g = $this->linSrgb($rgb->g ?? 0.0);
+        $b = $this->linSrgb($rgb->b ?? 0.0);
 
         return $this->linSrgbToOklabChannels($r, $g, $b);
     }
@@ -913,13 +912,17 @@ final readonly class SpaceConverter
 
     public function isAchromaticRgb(RgbColor $rgb): bool
     {
-        return abs(($rgb->r ?? 0.0) - ($rgb->g ?? 0.0)) <= 0.000001 && abs(($rgb->g ?? 0.0) - ($rgb->b ?? 0.0)) <= 0.000001;
+        $r = $rgb->r ?? 0.0;
+        $g = $rgb->g ?? 0.0;
+        $b = $rgb->b ?? 0.0;
+
+        return abs($r - $g) <= self::ACHROMATIC_CHANNEL_EPSILON && abs($g - $b) <= self::ACHROMATIC_CHANNEL_EPSILON;
     }
 
     public function calculateDeltaE(RgbColor $rgb1, RgbColor $rgb2): float
     {
-        [$l1, $a1, $b1] = $this->normalizedRgbToOklabChannels($rgb1);
-        [$l2, $a2, $b2] = $this->normalizedRgbToOklabChannels($rgb2);
+        [$l1, $a1, $b1] = $this->rgbToOklabChannels($rgb1);
+        [$l2, $a2, $b2] = $this->rgbToOklabChannels($rgb2);
 
         $deltaL = $l1 - $l2;
         $deltaA = $a1 - $a2;
@@ -1291,31 +1294,28 @@ final readonly class SpaceConverter
     }
 
     /**
-     * Converts an RgbColor whose channels are already in the 0..1 range
-     * (no /255 normalization is applied, unlike rgbToOklch()).
+     * @deprecated Use rgbToOklch(). RgbColor channels are always in the 0..1 range.
      */
     public function normalizedChannelsToOklch(RgbColor $rgb): OklchColor
     {
-        [$l, $a, $b] = $this->normalizedRgbToOklabChannels($rgb);
-
-        return $this->oklabComponentsToOklch($l, $a, $b, $rgb->a);
+        return $this->rgbToOklch($rgb);
     }
 
     /**
-     * @deprecated Use normalizedChannelsToOklch(). The $clampChannels parameter no longer
+     * @deprecated Use rgbToOklch(). The $clampChannels parameter no longer
      * affects the result (both branches were already identical in the original class).
      */
     public function normalizedSrgbToOklch(RgbColor $rgb, bool $clampChannels = false): OklchColor
     {
-        return $this->normalizedChannelsToOklch($rgb);
+        return $this->rgbToOklch($rgb);
     }
 
     /**
-     * @deprecated Use normalizedChannelsToOklch().
+     * @deprecated Use rgbToOklch().
      */
     public function normalizedRgbToOklch(RgbColor $rgb, bool $clampChannels): OklchColor
     {
-        return $this->normalizedChannelsToOklch($rgb);
+        return $this->rgbToOklch($rgb);
     }
 
     /**
@@ -1365,18 +1365,6 @@ final readonly class SpaceConverter
         [$lLms, $mLms, $sLms] = $this->multiply(self::M_LIN_SRGB_TO_LMS, [$r, $g, $b]);
 
         return $this->lmsToOklab($this->cubeRoot($lLms), $this->cubeRoot($mLms), $this->cubeRoot($sLms));
-    }
-
-    /**
-     * @return array{0: float, 1: float, 2: float}
-     */
-    private function normalizedRgbToOklabChannels(RgbColor $rgb): array
-    {
-        $r = $this->linSrgb($rgb->r ?? 0.0);
-        $g = $this->linSrgb($rgb->g ?? 0.0);
-        $b = $this->linSrgb($rgb->b ?? 0.0);
-
-        return $this->linSrgbToOklabChannels($r, $g, $b);
     }
 
     /**

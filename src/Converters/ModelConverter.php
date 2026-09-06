@@ -20,9 +20,9 @@ final readonly class ModelConverter
 
     public function rgbToHslColor(RgbColor $rgb): HslColor
     {
-        $r = ($rgb->r ?? 0.0) / 255.0;
-        $g = ($rgb->g ?? 0.0) / 255.0;
-        $b = ($rgb->b ?? 0.0) / 255.0;
+        $r = $rgb->r ?? 0.0;
+        $g = $rgb->g ?? 0.0;
+        $b = $rgb->b ?? 0.0;
 
         $max   = max($r, $g, $b);
         $min   = min($r, $g, $b);
@@ -51,9 +51,9 @@ final readonly class ModelConverter
         );
 
         return new RgbColor(
-            r: $this->normalizeRgbChannel($r * 255.0),
-            g: $this->normalizeRgbChannel($g * 255.0),
-            b: $this->normalizeRgbChannel($b * 255.0),
+            r: $this->normalizeRgbChannel($r),
+            g: $this->normalizeRgbChannel($g),
+            b: $this->normalizeRgbChannel($b),
             a: $this->colorSpaceConverter->clamp($hsl->a, 1.0),
         );
     }
@@ -65,10 +65,11 @@ final readonly class ModelConverter
 
     private function normalizeRgbChannel(float $value): float
     {
-        $rounded = round($value);
+        $scaled  = $value * 255.0;
+        $rounded = round($scaled);
 
-        if (abs($value - $rounded) < 0.00001) {
-            return $rounded;
+        if (abs($scaled - $rounded) < 0.00001) {
+            return $rounded / 255.0;
         }
 
         return $value;

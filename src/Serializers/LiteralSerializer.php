@@ -29,7 +29,7 @@ final readonly class LiteralSerializer
                 $red,
                 $green,
                 $blue,
-                $this->toColorByte($alpha * 255.0),
+                $this->toColorByte($alpha),
             );
         }
 
@@ -57,6 +57,6 @@ final readonly class LiteralSerializer
 
     private function toColorByte(float $value): int
     {
-        return (int) round($this->colorSpaceConverter->clamp($value, 255.0));
+        return (int) round($this->colorSpaceConverter->clamp($value, 1.0) * 255.0);
     }
 }

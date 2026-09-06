@@ -15,10 +15,10 @@ use Bugo\Iris\Spaces\XyzColor;
 describe('Color space data classes', function (): void {
     describe('RgbColor', function (): void {
         it('stores r, g, b, a channels', function (): void {
-            $rgb = new RgbColor(r: 255.0, g: 128.0, b: 0.0, a: 0.5);
+            $rgb = new RgbColor(r: 1.0, g: 0.5, b: 0.0, a: 0.5);
 
-            expect($rgb->r)->toBe(255.0)
-                ->and($rgb->g)->toBe(128.0)
+            expect($rgb->r)->toBe(1.0)
+                ->and($rgb->g)->toBe(0.5)
                 ->and($rgb->b)->toBe(0.0)
                 ->and($rgb->a)->toBe(0.5);
         });
@@ -30,11 +30,11 @@ describe('Color space data classes', function (): void {
         });
 
         it('rValue/gValue/bValue return channel values when non-null', function (): void {
-            $rgb = new RgbColor(r: 255.0, g: 128.0, b: 64.0);
+            $rgb = new RgbColor(r: 1.0, g: 0.5, b: 0.25);
 
-            expect($rgb->rValue())->toBe(255.0)
-                ->and($rgb->gValue())->toBe(128.0)
-                ->and($rgb->bValue())->toBe(64.0);
+            expect($rgb->rValue())->toBe(1.0)
+                ->and($rgb->gValue())->toBe(0.5)
+                ->and($rgb->bValue())->toBe(0.25);
         });
 
         it('rValue/gValue/bValue return 0.0 when channel is null', function (): void {
@@ -46,9 +46,9 @@ describe('Color space data classes', function (): void {
         });
 
         it('getChannels returns all three channel values in order r, g, b', function (): void {
-            $rgb = new RgbColor(r: 255.0, g: 128.0, b: 64.0);
+            $rgb = new RgbColor(r: 1.0, g: 0.5, b: 0.25);
 
-            expect($rgb->getChannels())->toBe([255.0, 128.0, 64.0]);
+            expect($rgb->getChannels())->toBe([1.0, 0.5, 0.25]);
         });
 
         it('getChannels returns nulls for none channels', function (): void {

@@ -12,31 +12,31 @@ describe('ModelConverter', function (): void {
     });
 
     describe('rgbToHslColor', function (): void {
-        it('converts rgb(255, 0, 0) to hsl(0, 100, 50)', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(255.0, 0.0, 0.0, 1.0));
+        it('converts red to hsl(0, 100, 50)', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(1.0, 0.0, 0.0, 1.0));
 
             expect($hsl->h)->toBe(0.0)
                 ->and($hsl->s)->toBe(100.0)
                 ->and($hsl->l)->toBe(50.0);
         });
 
-        it('converts rgb(0, 255, 0) to hsl(120, 100, 50)', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 255.0, 0.0, 1.0));
+        it('converts green to hsl(120, 100, 50)', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 1.0, 0.0, 1.0));
 
             expect($hsl->h)->toBe(120.0)
                 ->and($hsl->s)->toBe(100.0)
                 ->and($hsl->l)->toBe(50.0);
         });
 
-        it('converts rgb(0, 0, 255) to hsl(240, 100, 50)', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 0.0, 255.0, 1.0));
+        it('converts blue to hsl(240, 100, 50)', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 0.0, 1.0, 1.0));
 
             expect($hsl->h)->toBe(240.0)
                 ->and($hsl->s)->toBe(100.0)
                 ->and($hsl->l)->toBe(50.0);
         });
 
-        it('converts rgb(0, 0, 0) to hsl(0, 0, 0) — delta = 0 path', function (): void {
+        it('converts black to hsl(0, 0, 0) — delta = 0 path', function (): void {
             $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 0.0, 0.0, 1.0));
 
             expect($hsl->h)->toBe(0.0)
@@ -44,16 +44,16 @@ describe('ModelConverter', function (): void {
                 ->and($hsl->l)->toBe(0.0);
         });
 
-        it('converts rgb(255, 255, 255) to hsl(0, 0, 100) — delta = 0 path', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(255.0, 255.0, 255.0, 1.0));
+        it('converts white to hsl(0, 0, 100) — delta = 0 path', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(1.0, 1.0, 1.0, 1.0));
 
             expect($hsl->h)->toBe(0.0)
                 ->and($hsl->s)->toBe(0.0)
                 ->and($hsl->l)->toBe(100.0);
         });
 
-        it('converts rgb(128, 128, 128) to hsl(0, 0, ~50.196)', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(128.0, 128.0, 128.0, 0.5));
+        it('converts mid gray to hsl(0, 0, ~50.196)', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(128.0 / 255.0, 128.0 / 255.0, 128.0 / 255.0, 0.5));
 
             expect($hsl->h)->toBe(0.0)
                 ->and($hsl->s)->toBe(0.0)
@@ -61,16 +61,16 @@ describe('ModelConverter', function (): void {
                 ->and($hsl->a)->toBe(0.5);
         });
 
-        it('converts rgb(0, 255, 255) to hsl(180, 100, 50)', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 255.0, 255.0, 1.0));
+        it('converts cyan to hsl(180, 100, 50)', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 1.0, 1.0, 1.0));
 
             expect($hsl->h)->toBe(180.0)
                 ->and($hsl->s)->toBe(100.0)
                 ->and($hsl->l)->toBe(50.0);
         });
 
-        it('converts rgb(0, 0, 128) to hsl(240, 100, ~25.098)', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 0.0, 128.0, 1.0));
+        it('converts navy to hsl(240, 100, ~25.098)', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(0.0, 0.0, 128.0 / 255.0, 1.0));
 
             expect($hsl->h)->toBe(240.0)
                 ->and($hsl->s)->toBe(100.0)
@@ -78,51 +78,51 @@ describe('ModelConverter', function (): void {
         });
 
         it('preserves alpha channel', function (): void {
-            $hsl = $this->converter->rgbToHslColor(new RgbColor(255.0, 0.0, 0.0, 0.7));
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(1.0, 0.0, 0.0, 0.7));
 
             expect($hsl->a)->toBe(0.7);
         });
     });
 
     describe('hslToRgbColor', function (): void {
-        it('converts hsl(0, 100%, 50%) to rgb(255, 0, 0)', function (): void {
+        it('converts hsl(0, 100%, 50%) to red', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(0.0, 100.0, 50.0, 1.0));
 
-            expect(round($rgb->r))->toBe(255.0)
-                ->and(round($rgb->g))->toBe(0.0)
-                ->and(round($rgb->b))->toBe(0.0);
+            expect($rgb->r)->toBe(1.0)
+                ->and($rgb->g)->toBe(0.0)
+                ->and($rgb->b)->toBe(0.0);
         });
 
-        it('converts hsl(120, 100%, 50%) to rgb(0, 255, 0)', function (): void {
+        it('converts hsl(120, 100%, 50%) to green', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(120.0, 100.0, 50.0, 1.0));
 
-            expect(round($rgb->r))->toBe(0.0)
-                ->and(round($rgb->g))->toBe(255.0)
-                ->and(round($rgb->b))->toBe(0.0);
+            expect($rgb->r)->toBe(0.0)
+                ->and($rgb->g)->toBe(1.0)
+                ->and($rgb->b)->toBe(0.0);
         });
 
-        it('converts hsl(240, 100%, 50%) to rgb(0, 0, 255)', function (): void {
+        it('converts hsl(240, 100%, 50%) to blue', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(240.0, 100.0, 50.0, 1.0));
 
-            expect(round($rgb->r))->toBe(0.0)
-                ->and(round($rgb->g))->toBe(0.0)
-                ->and(round($rgb->b))->toBe(255.0);
+            expect($rgb->r)->toBe(0.0)
+                ->and($rgb->g)->toBe(0.0)
+                ->and($rgb->b)->toBe(1.0);
         });
 
-        it('converts hsl(0, 0%, 100%) to rgb(255, 255, 255)', function (): void {
+        it('converts hsl(0, 0%, 100%) to white', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(0.0, 0.0, 100.0, 1.0));
 
-            expect(round($rgb->r))->toBe(255.0)
-                ->and(round($rgb->g))->toBe(255.0)
-                ->and(round($rgb->b))->toBe(255.0);
+            expect($rgb->r)->toBe(1.0)
+                ->and($rgb->g)->toBe(1.0)
+                ->and($rgb->b)->toBe(1.0);
         });
 
-        it('converts hsl(0, 0%, 0%) to rgb(0, 0, 0)', function (): void {
+        it('converts hsl(0, 0%, 0%) to black', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(0.0, 0.0, 0.0, 1.0));
 
-            expect(round($rgb->r))->toBe(0.0)
-                ->and(round($rgb->g))->toBe(0.0)
-                ->and(round($rgb->b))->toBe(0.0);
+            expect($rgb->r)->toBe(0.0)
+                ->and($rgb->g)->toBe(0.0)
+                ->and($rgb->b)->toBe(0.0);
         });
 
         it('preserves alpha channel', function (): void {
@@ -131,28 +131,36 @@ describe('ModelConverter', function (): void {
             expect($rgb->a)->toBe(0.5);
         });
 
-        it('converts hsl(60, 100%, 50%) to yellow rgb(255, 255, 0)', function (): void {
+        it('converts hsl(60, 100%, 50%) to yellow', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(60.0, 100.0, 50.0, 1.0));
 
-            expect(round($rgb->r))->toBe(255.0)
-                ->and(round($rgb->g))->toBe(255.0)
-                ->and(round($rgb->b))->toBe(0.0);
+            expect($rgb->r)->toBe(1.0)
+                ->and($rgb->g)->toBe(1.0)
+                ->and($rgb->b)->toBe(0.0);
         });
 
-        it('converts hsl(180, 100%, 50%) to cyan rgb(0, 255, 255)', function (): void {
+        it('converts hsl(180, 100%, 50%) to cyan', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(180.0, 100.0, 50.0, 1.0));
 
-            expect(round($rgb->r))->toBe(0.0)
-                ->and(round($rgb->g))->toBe(255.0)
-                ->and(round($rgb->b))->toBe(255.0);
+            expect($rgb->r)->toBe(0.0)
+                ->and($rgb->g)->toBe(1.0)
+                ->and($rgb->b)->toBe(1.0);
         });
 
-        it('converts hsl(0, 0%, 50%) to gray rgb(128, 128, 128)', function (): void {
+        it('converts hsl(0, 0%, 50%) to mid gray', function (): void {
             $rgb = $this->converter->hslToRgbColor(new HslColor(0.0, 0.0, 50.0, 1.0));
 
-            expect(round($rgb->r))->toBe(128.0)
-                ->and(round($rgb->g))->toBe(128.0)
-                ->and(round($rgb->b))->toBe(128.0);
+            expect($rgb->r)->toBeCloseTo(0.5, 0.000001)
+                ->and($rgb->g)->toBeCloseTo(0.5, 0.000001)
+                ->and($rgb->b)->toBeCloseTo(0.5, 0.000001);
+        });
+
+        it('snaps channels that land on a byte boundary', function (): void {
+            $rgb = $this->converter->hslToRgbColor(new HslColor(0.0, 0.0, 100.0 * (128.0 / 255.0), 1.0));
+
+            expect($rgb->r)->toBe(128.0 / 255.0)
+                ->and($rgb->g)->toBe(128.0 / 255.0)
+                ->and($rgb->b)->toBe(128.0 / 255.0);
         });
     });
 });
