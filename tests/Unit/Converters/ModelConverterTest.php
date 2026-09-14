@@ -82,6 +82,22 @@ describe('ModelConverter', function (): void {
 
             expect($hsl->a)->toBe(0.7);
         });
+
+        it('handles out-of-gamut negative channel with L = 0 without division by zero', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(-0.2, 0.2, 0.1, 1.0));
+
+            expect($hsl->l)->toBe(0.0)
+                ->and($hsl->s)->toBe(0.0)
+                ->and($hsl->h)->toBe(165.0);
+        });
+
+        it('handles out-of-gamut channel with L = 1 without division by zero', function (): void {
+            $hsl = $this->converter->rgbToHslColor(new RgbColor(1.2, 0.8, 0.8, 1.0));
+
+            expect($hsl->l)->toBe(100.0)
+                ->and($hsl->s)->toBe(0.0)
+                ->and($hsl->h)->toBe(0.0);
+        });
     });
 
     describe('hslToRgbColor', function (): void {

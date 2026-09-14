@@ -32,7 +32,10 @@ final readonly class ModelConverter
 
         $h = $this->colorSpaceConverter->hueFromNormalizedRgb($channels);
         $l = ($max + $min) / 2.0;
-        $s = $delta > 0.0 ? $delta / (1.0 - abs((2.0 * $l) - 1.0)) : 0.0;
+
+        $lightnessDenominator = 1.0 - abs((2.0 * $l) - 1.0);
+
+        $s = $delta > 0.0 && $lightnessDenominator > 0.0 ? $delta / $lightnessDenominator : 0.0;
 
         return new HslColor(
             h: $h,
